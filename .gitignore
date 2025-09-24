@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# BackEnd Python / FastApi
+# Entorno virtual
+backend/venv/
+
+# Archivos compilados de Python
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+
+# Archivos de entorno local
+backend/.env
+
