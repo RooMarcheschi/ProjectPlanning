@@ -1,0 +1,27 @@
+------BACKEND----- Tiene q estar prendido Bonita
+1- crear entorno virtual env
+	python3 -m env backend/venv 
+	(yo pongo python3 xq estoy en Mac, para Linux es igual creo y para windows es sin el 3)
+
+2- activar entorno virtual 
+	Mac/linux —> source backend/venv/bin/activate
+	windows —> backend\venv\Scripts\activate
+
+3- instalar dependencias
+	pip install -r backend/requirements.txt
+
+4- levantar servidor
+	unicorn backend.main:app --reload
+
+http://127.0.0.1:8000/
+------DOCKER------
+TODO PARADO DESDE BACKEND/
+1- Buildear la imagen de docker:
+docker build -t fastapi-app .
+
+2- Runear la app:
+docker run -it --rm -p 8000:8000 fastapi-app
+
+3-
+La app esta runeando en realidad en:
+http://localhost:8000/

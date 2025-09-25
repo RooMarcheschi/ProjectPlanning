@@ -2,7 +2,10 @@ import requests
 
 
 class BonitaClient:
+    """Cliente para interactuar con la API de Bonita"""
+
     def __init__(self, base_url: str, username: str, password: str):
+        """Inicializa el cliente, realiza login y guarda cookies en la sesión."""
         self.base_url = base_url.rstrip("/")
         self.username = username
         self.password = password
@@ -16,7 +19,7 @@ class BonitaClient:
         )
 
     def _login(self):
-        """Login a Bonita y guarda cookies en la sesión."""
+        """Login a Bonita."""
         url = f"{self.base_url}/bonita/loginservice"
         data = {
             "username": self.username,
@@ -45,7 +48,6 @@ class BonitaClient:
         resp = self.session.get(url, params=params)
         if resp.status_code != 200:
             raise Exception(f"Error buscando proceso: {resp.status_code} {resp.text}")
-
         processes = resp.json()
         if not processes:
             raise Exception(f"No se encontró ningún proceso con nombre {process_name}")
