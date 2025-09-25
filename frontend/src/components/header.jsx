@@ -1,7 +1,7 @@
 function Header() {
 
     return (
-        <h1 className='title'> PROJECT PLANNING </h1>
+        <h1 className='title text-3xl'> PROJECT PLANNING </h1>
     )
 }
 
