@@ -6,7 +6,8 @@ app = FastAPI()
 # Inicializa el cliente Bonita con las credenciales de el usuario walter.bates,
 # tuve que cambiar la contraseña a bpm desde el cli de bonita
 bonita = BonitaClient(
-    base_url="http://localhost:8080",  # "http://host.docker.internal:8080" en docker
+    # http://host.docker.internal:8080 o "http://localhost:8080"
+    base_url="http://host.docker.internal:8080",
     username="walter.bates",
     password="bpm",
 )
