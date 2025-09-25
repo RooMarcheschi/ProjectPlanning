@@ -1,7 +1,1 @@
 @import "tailwindcss";
-
-.title {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
