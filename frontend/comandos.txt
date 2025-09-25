@@ -1,0 +1,14 @@
+------FrontEnd-----
+TODO DESDE /frontend
+1.Instalar dependencias
+npm install
+2. runear front
+npm run dev
+
+----DOCKER------
+TODO DESDE /frontend
+1.buildear imagen
+docker build -t react-vite-dev .
+
+2. Runear imagen
+docker run -it --rm -p 5173:5173 react-vite-dev
