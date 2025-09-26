@@ -127,6 +127,11 @@ function Form() {
                 autoClose: 4000
             })
         }
+
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            setTimeout(() => window.location.reload(), 800);
+        }, 4000);
     }
 
     return (
