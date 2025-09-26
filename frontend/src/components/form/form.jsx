@@ -1,13 +1,12 @@
 import { useState } from "react"
 import Stage from "./stageForm"
+import { toast } from "react-toastify"
 
 function Form() {
     const [amountStages, setAmountStages] = useState(1);
     const [confirmedStages, setConfirmedStages] = useState(false);
     const [currentStage, setCurrentStage] = useState(0);
     const [transitioning, setTransitioning] = useState(false);
-
-    // estados para el efecto de color
     const [clickedNext, setClickedNext] = useState(false);
     const [clickedPrev, setClickedPrev] = useState(false);
 
@@ -30,7 +29,7 @@ function Form() {
     const handleNextClick = () => {
         setClickedNext(true);
         goToNextStage();
-        setTimeout(() => setClickedNext(false), 600); // 600 ms de azul
+        setTimeout(() => setClickedNext(false), 600);
     };
 
     const handlePrevClick = () => {
@@ -39,8 +38,99 @@ function Form() {
         setTimeout(() => setClickedPrev(false), 600);
     };
 
+    const submitProject = async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const ongName = formData.get('ongName');
+        const projectName = formData.get('projectName');
+        const stagesAmount = Number(formData.get('stagesAmount'));
+
+        if (!ongName || typeof ongName !== 'string' || ongName.trim() === '') {
+            toast.error('El nombre de la ONG es inválido.', {
+                position: "bottom-right",
+                autoClose: 4000,
+            });
+            return;
+        }
+
+        if (!projectName || typeof projectName !== 'string' || projectName.trim() === '') {
+            toast.error('El nombre del proyecto es inválido.', {
+                position: "bottom-right",
+                autoClose: 4000,
+            });
+            return;
+        }
+
+        if (!stagesAmount || typeof stagesAmount !== 'number') {
+            toast.error('Error con la cantidad de etapas.', {
+                position: "bottom-right",
+                autoClose: 4000,
+            });
+            return;
+        }
+
+        for (let i = 0; i < amountStages; i++) {
+            const stageName = formData.get(`stageName${i + 1}`);
+            const stageDesc = formData.get(`stageDesc${i + 1}`);
+
+            if (!stageName || !stageDesc || typeof stageName !== 'string' || typeof stageDesc !== 'string' || stageName.trim() === '' || stageDesc.trim() === '') {
+                toast.error(`Error con la etapa número ${i}`, {
+                    position: "bottom-right",
+                    autoClose: 4000,
+                });
+                return;
+            }
+        }
+
+        const stages = Array.from({ length: stagesAmount }, (_, i) => ({
+            name: formData.get(`stageName${i+1}`),
+            description: formData.get(`stageDesc${i+1}`),
+        }));
+
+        const bodyJSON = {
+            ongName: ongName,
+            projectName: projectName,
+            stagesAmount: stagesAmount,
+            stages: stages
+        }
+
+        console.log(bodyJSON);
+        
+        try {
+            const response = await fetch("http://localhost:8000/submitProject",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(bodyJSON)
+                }
+            );
+
+            const data = await response.json();
+
+            if (data.success) {
+                toast.success("Proyecto enviado correctamente! ", {
+                    position: "bottom-right",
+                    autoClose: 4000,
+                });
+            } else {
+                toast.error(`Error al enviar el proyecto: ${data.message}`, {
+                    position: "bottom-right",
+                    autoClose: 4000
+                })
+            }
+        } catch (err) {
+            toast.error(`Error al enviar el proyecto: ${err}`, {
+                position: "bottom-right",
+                autoClose: 4000
+            })
+        }
+    }
+
     return (
-        <div className="flex flex-col justify-center items-center border-2 max-w-lg mx-auto mt-12 mb-12 p-8 bg-white rounded-2xl shadow-2xl space-y-6">
+        <form className="flex flex-col justify-center items-center border-2 max-w-lg mx-auto mt-12 mb-12 p-8 bg-white rounded-2xl shadow-2xl space-y-6" method="POST" onSubmit={submitProject}>
             <h1 className="text-2xl font-bold text-blue-700 mb-2">Registrar Proyecto</h1>
             <div className="w-full">
                 <label className="block text-gray-700 font-semibold mb-1" htmlFor="ongName">
@@ -51,6 +141,8 @@ function Form() {
                     className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition"
                     placeholder="Juntos por un sueño"
                     name="ongName"
+                    required
+                    id="ongName"
                 />
             </div>
 
@@ -63,6 +155,8 @@ function Form() {
                     className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition"
                     placeholder="Asfaltado de calles en Tucumán"
                     name="projectName"
+                    required
+                    id="projectName"
                 />
             </div>
 
@@ -78,8 +172,9 @@ function Form() {
                         setAmountStages(Number(e.target.value));
                         setCurrentStage(0);
                     }}
-                    disabled={confirmedStages}
+                    readOnly={confirmedStages}
                     name="stagesAmount"
+                    required
                 />
                 <button
                     className={`bg-green-600 rounded px-4 py-2 text-white font-semibold shadow transition
@@ -89,7 +184,7 @@ function Form() {
                         }`}
                     onClick={() => setConfirmedStages(true)}
                     disabled={confirmedStages}
-                >
+                    >
                     Confirmar
                 </button>
             </div>
@@ -139,12 +234,12 @@ function Form() {
                         </button>
                     </div>
 
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:cursor-pointer">
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:cursor-pointer hover:scale-105 transition font-semibold" type="submit">
                         Enviar proyecto
                     </button>
                 </div>
             }
-        </div>
+        </form>
     )
 }
 
