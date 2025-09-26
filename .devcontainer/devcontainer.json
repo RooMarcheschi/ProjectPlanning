@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vscode-dev-containers/main/script-library/docs/devcontainer.schema.json",
+  "name": "ProjectPlanning",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "backend",
+  "workspaceFolder": "/app",
+  "extensions": [
+    "ms-python.python",
+    "ms-python.vscode-pylance"
+  ],
+  "settings": {
+    "python.pythonPath": "/usr/local/bin/python",
+    "python.languageServer": "Pylance"
+  },
+  "postCreateCommand": "pip install --no-cache-dir -r requirements.txt",
+  "remoteUser": "root"
+}
