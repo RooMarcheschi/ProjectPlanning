@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+.font-sans {
+  font-family: 'Lato', ui-sans-serif, system-ui;
+}
