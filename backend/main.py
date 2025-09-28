@@ -2,6 +2,8 @@ from fastapi import Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from bonita_client import BonitaClient
+from routers import proyectos, etapas
+
 
 origins = [
     "http://localhost:5173",
@@ -9,6 +11,11 @@ origins = [
 ]
 
 app = FastAPI()
+
+# routers
+app.include_router(proyectos.router)
+app.include_router(etapas.router)
+
 # Inicializa el cliente Bonita con las credenciales de el usuario walter.bates,
 # tuve que cambiar la contraseña a bpm desde el cli de bonita
 bonita = BonitaClient(
