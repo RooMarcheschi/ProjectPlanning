@@ -30,13 +30,10 @@ class BonitaClient:
         if resp.status_code not in [200, 204]:
             raise Exception(f"Error login Bonita: {resp.status_code} {resp.text}")
 
-    def start_process(self, process_definition_id: str, variables: dict = None):
+    def start_process(self, process_definition_id: str):
         """Inicia un proceso dado su process_definition_id con variables opcionales"""
         url = f"{self.base_url}/bonita/API/bpm/process/{process_definition_id}/instantiation"
-        payload = {
-            "variables": [{"name": k, "value": v} for k, v in (variables or {}).items()]
-        }
-        resp = self.session.post(url, json=payload)
+        resp = self.session.post(url)
         if resp.status_code not in [200, 201]:
             raise Exception(f"Error al iniciar proceso: {resp.status_code} {resp.text}")
         return resp.json()
@@ -54,3 +51,50 @@ class BonitaClient:
 
         # Retorna el primer match
         return processes[0]["id"]
+
+    def set_case_variable(
+        self,
+        case_id: str,
+        variable_name: str,
+        value,
+        type_hint: str = None,
+        debug: bool = False,
+    ):
+        """
+        Actualiza el valor de una variable en un case existente.
+        - case_id: ID del case
+        - variable_name: nombre de la variable (sensible a mayúsculas según el diseño del proceso)
+        - value: valor a setear (se convierte a string)
+        - type_hint: tipo Java opcional ("java.lang.Integer", "java.lang.String", etc.)
+          Si no se pasa, se infiere a partir del tipo Python.
+        """
+
+        TYPE_MAP = {
+            int: "java.lang.Integer",
+            float: "java.lang.Double",
+            bool: "java.lang.Boolean",
+            str: "java.lang.String",
+        }
+
+        if type_hint is None:
+            type_hint = TYPE_MAP.get(type(value), "java.lang.String")
+
+        payload = {"value": str(value) if value is not None else "", "type": type_hint}
+
+        url = f"{self.base_url}/bonita/API/bpm/caseVariable/{case_id}/{variable_name}"
+
+        if debug:
+            print(f"PUT {url}")
+            print("Payload:", payload)
+
+        resp = self.session.put(url, json=payload)
+        if resp.status_code not in [200, 204]:
+            raise Exception(
+                f"Error al actualizar variable: {resp.status_code} {resp.text}"
+            )
+
+        # si devuelve json, lo retornamos, si no, devolvemos True
+        try:
+            return resp.json()
+        except Exception:
+            return True

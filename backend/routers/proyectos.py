@@ -75,13 +75,15 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         process_id = bonita.get_process_id_by_name("Proyecto")
         # Inicio el proceso con las variables, capaz tendriamos q añadir variables?
         # Nombre de ong? Descripcion? etc?
-        payload = {
-            "etapasTotales": 2,
-        }
-        result = bonita.start_process(
-            process_definition_id=process_id, variables=payload
+        result = bonita.start_process(process_definition_id=process_id)
+        print(result["caseId"])
+        res = bonita.set_case_variable(
+            case_id=result["caseId"],
+            variable_name="etapasTotales",
+            value=amount_stages,
+            type_hint="java.lang.Integer",
+            debug=True,
         )
-        print(result)
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
