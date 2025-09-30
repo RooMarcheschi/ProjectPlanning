@@ -54,29 +54,3 @@ def crear_proyecto(payload: dict = Body(...)):
         return {"status": "ok", "process_instance": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/submitProject")
-def submit_project(data: dict = Body(...)):
-    ong_Name = data["ongName"]
-    project_name = data["projectName"]
-    amount_stages = data["stagesAmount"]
-
-    if not ong_Name or type(ong_Name) != str or ong_Name.strip() == "":
-        return {"success": False, "message": "Invalid ONG name"}
-
-    if not project_name or type(project_name) != str or ong_Name.strip() == "":
-        return {"success": False, "message": "Invalid Project name"}
-
-    if not amount_stages or type(amount_stages) != int:
-        return {"success": False, "message": "Invalid amount of stages"}
-
-    for i, stage in enumerate(data["stages"]):
-        name = stage["name"]
-        desc = stage["description"]
-        if not name or type(name) != str or name.strip() == "" or not desc or type(desc) != str or desc.strip() == "":
-            return {"success": False, "message": f"Error with stage {i+1}"}
-
-    # conexion con BD
-
-    return {"success": True, "message": "Project submitted successfully"}

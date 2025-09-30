@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from models.etapa import Etapa, EstadoEtapa
-from schemas.etapas import EtapaCreate
 from datetime import date
 
 def crear_etapa(db: Session, nueva_etapa: Etapa):

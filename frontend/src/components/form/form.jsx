@@ -44,7 +44,9 @@ function Form() {
         const formData = new FormData(e.target);
         const ongName = formData.get('ongName');
         const projectName = formData.get('projectName');
+        const projectDesc = formData.get('projectDesc');
         const stagesAmount = Number(formData.get('stagesAmount'));
+        
 
         if (!ongName || typeof ongName !== 'string' || ongName.trim() === '') {
             toast.error('El nombre de la ONG es inválido.', {
@@ -70,6 +72,14 @@ function Form() {
             return;
         }
 
+        if (!projectDesc || typeof projectDesc !== 'string' || projectDesc.trim() === '') {
+            toast.error('La descripción del proyecto es inválida.', {
+                position: "bottom-right",
+                autoClose: 4000,
+            });
+            return;
+        }
+
         for (let i = 0; i < amountStages; i++) {
             const stageName = formData.get(`stageName${i + 1}`);
             const stageDesc = formData.get(`stageDesc${i + 1}`);
@@ -84,19 +94,18 @@ function Form() {
         }
 
         const stages = Array.from({ length: stagesAmount }, (_, i) => ({
-            name: formData.get(`stageName${i+1}`),
-            description: formData.get(`stageDesc${i+1}`),
+            name: formData.get(`stageName${i + 1}`),
+            description: formData.get(`stageDesc${i + 1}`),
         }));
 
         const bodyJSON = {
             ongName: ongName,
             projectName: projectName,
+            projectDesc: projectDesc,
             stagesAmount: stagesAmount,
             stages: stages
         }
 
-        console.log(bodyJSON);
-        
         try {
             const response = await fetch("http://localhost:8000/proyectos/crearProyecto",
                 {
@@ -165,6 +174,16 @@ function Form() {
                 />
             </div>
 
+            <div className="w-full">
+                <label className="block text-gray-700 font-semibold mb-1" htmlFor="projectDesc">
+                    Descripción del proyecto:
+                </label>
+                <textarea name="projectDesc" id="projectDesc" className="border-2 border-gray-300 rounded px-3 py-2 h-30 w-full focus:outline-none focus:border-blue-400 transition"
+                    placeholder="Este proyecto ayudará a mas de 500 familias a..."
+                >
+                </textarea>
+            </div>
+
             <div className="flex flex-row items-center w-full space-x-4">
                 <h2 className="font-semibold text-gray-700">Cantidad de etapas:</h2>
                 <input
@@ -189,7 +208,7 @@ function Form() {
                         }`}
                     onClick={() => setConfirmedStages(true)}
                     disabled={confirmedStages}
-                    >
+                >
                     Confirmar
                 </button>
             </div>

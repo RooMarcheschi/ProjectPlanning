@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from models.proyecto import Proyecto, EstadoProyecto
-from schemas.proyectos import ProyectoCreate
 from datetime import date
 
 def crear_proyecto(db: Session, nuevo_proyecto: Proyecto):

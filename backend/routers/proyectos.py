@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Body, Depends
 from sqlalchemy.orm import Session
 from services import proyecto_service, etapa_service
-from schemas.proyectos import ProyectoCreate, ProyectoOut
 from models.proyecto import Proyecto, EstadoProyecto
 from models.etapa import Etapa, EstadoEtapa
 from datetime import date
@@ -15,6 +14,7 @@ router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
     ong_Name = proyecto["ongName"]
     project_name = proyecto["projectName"]
+    project_desc = proyecto["projectDesc"]
     amount_stages = proyecto["stagesAmount"]
 
     if not ong_Name or type(ong_Name) != str or ong_Name.strip() == "":
@@ -25,6 +25,9 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
 
     if not amount_stages or type(amount_stages) != int:
         return {"success": False, "message": "Invalid amount of stages"}
+
+    if not project_desc or type(project_desc) != str or project_desc.strip() == "":
+        return {"success": False, "message": "Invalid Project description"}
 
     for i, stage in enumerate(proyecto["stages"]):
         name = stage["name"]
@@ -42,7 +45,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
     try:
         proy = Proyecto(
             titulo=project_name,
-            descripcion="",
+            descripcion=project_desc,
             fecha_creacion=date.today(),
             estado=EstadoProyecto.publicado,
         )
