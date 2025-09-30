@@ -7,10 +7,8 @@ from models.etapa import Etapa, EstadoEtapa
 from datetime import date
 from config.database import get_db
 
-router = APIRouter(
-    prefix="/proyectos",
-    tags=["Proyectos"]
-)
+router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
+
 
 # Crear un proyecto
 @router.post("/crearProyecto")
@@ -31,23 +29,40 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
     for i, stage in enumerate(proyecto["stages"]):
         name = stage["name"]
         desc = stage["description"]
-        if not name or type(name) != str or name.strip() == "" or not desc or type(desc) != str or desc.strip() == "":
+        if (
+            not name
+            or type(name) != str
+            or name.strip() == ""
+            or not desc
+            or type(desc) != str
+            or desc.strip() == ""
+        ):
             return {"success": False, "message": f"Error with stage {i+1}"}
-        
-    print("probando try")
+
     try:
-        proy = Proyecto(titulo=project_name, descripcion="", fecha_creacion=date.today(), estado=EstadoProyecto.publicado) 
+        proy = Proyecto(
+            titulo=project_name,
+            descripcion="",
+            fecha_creacion=date.today(),
+            estado=EstadoProyecto.publicado,
+        )
         nuevo_proyecto = proyecto_service.crear_proyecto(db, proy)
 
         for i, stage in enumerate(proyecto["stages"]):
             name = stage["name"]
             desc = stage["description"]
             # tenemos que chequear fecha inicio y fecha fin
-            etapa = Etapa(id_proyecto=nuevo_proyecto.id, titulo=name, descripcion=desc, fecha_creacion=date.today(), fecha_inicio=date.today(), fecha_fin=date.today(), estado=EstadoEtapa.publicada)    
+            etapa = Etapa(
+                id_proyecto=nuevo_proyecto.id,
+                titulo=name,
+                descripcion=desc,
+                fecha_creacion=date.today(),
+                fecha_inicio=date.today(),
+                fecha_fin=date.today(),
+                estado=EstadoEtapa.publicada,
+            )
             nueva_etapa = etapa_service.crear_etapa(db, etapa)
         return {"success": True, "message": "Project submitted successfully"}
-    
+
     except Exception as e:
         return {"success": False, "message": f"Error with db :{e}"}
-
-

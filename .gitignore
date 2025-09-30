@@ -31,7 +31,7 @@ backend/venv/
 backend/__pycache__/
 backend/*.pyc
 backend/*.pyo
-
+**/__pycache__/
 # Archivos de entorno local
 backend/.env
 

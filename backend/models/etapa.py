@@ -4,10 +4,12 @@ from .proyecto import Proyecto
 from config.database import Base
 import enum
 
+
 class EstadoEtapa(enum.Enum):
     publicada = "publicada"
     ejecutandose = "ejecutandose"
     terminada = "terminada"
+
 
 class Etapa(Base):
     __tablename__ = "etapas"
@@ -21,5 +23,4 @@ class Etapa(Base):
     fecha_fin = Column(Date, nullable=False)
     estado = Column(Enum(EstadoEtapa), nullable=False)
 
-    proyecto = relationship("Proyecto", back_populates="proyecto")
-    
+    proyecto = relationship("Proyecto", back_populates="etapas")
