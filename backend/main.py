@@ -18,12 +18,12 @@ app.include_router(etapas.router)
 
 # Inicializa el cliente Bonita con las credenciales de el usuario walter.bates,
 # tuve que cambiar la contraseña a bpm desde el cli de bonita
-bonita = BonitaClient(
-    # http://host.docker.internal:8080 o "http://localhost:8080"
-    base_url="http://host.docker.internal:8080",
-    username="walter.bates",
-    password="bpm",
-)
+# bonita = BonitaClient(
+#     # http://host.docker.internal:8080 o "http://localhost:8080"
+#     base_url="http://host.docker.internal:8080",
+#     username="walter.bates",
+#     password="bpm",
+# )
 
 app.add_middleware(
     CORSMiddleware,
