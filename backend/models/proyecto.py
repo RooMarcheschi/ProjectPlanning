@@ -16,6 +16,7 @@ class Proyecto(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     titulo = Column(String, nullable=False)
     descripcion = Column(String, nullable=False)
+    ong = Column(String, nullable=False)
     fecha_creacion = Column(Date, nullable=False)
     estado = Column(Enum(EstadoProyecto), nullable=False)
 
