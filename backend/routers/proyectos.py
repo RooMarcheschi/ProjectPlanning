@@ -24,6 +24,9 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
 
     if not project_name or type(project_name) != str or project_name.strip() == "":
         return {"success": False, "message": "Invalid Project name"}
+    
+    if not proyecto_service.obtener_proyecto_por_titulo(db, project_name):
+        return {"success": False, "message": "Project name already in use"}
 
     if not amount_stages or type(amount_stages) != int:
         return {"success": False, "message": "Invalid amount of stages"}
@@ -48,6 +51,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         proy = Proyecto(
             titulo=project_name,
             descripcion=project_desc,
+            ong=ong_Name,
             fecha_creacion=date.today(),
             estado=EstadoProyecto.publicado,
         )

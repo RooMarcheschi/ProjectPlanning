@@ -1,3 +1,4 @@
+from sqlalchemy import String
 from sqlalchemy.orm import Session
 from models.proyecto import Proyecto, EstadoProyecto
 from datetime import date
@@ -13,6 +14,9 @@ def obtener_proyectos(db: Session):
 
 def obtener_proyecto_por_id(db: Session, proyecto_id: int):
     return db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
+
+def obtener_proyecto_por_titulo(db: Session, proyecto_titulo: String):
+    return db.query(Proyecto).filter(Proyecto.titulo == proyecto_titulo).first()
 
 def eliminar_proyecto(db: Session, proyecto_id: int):
     proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
