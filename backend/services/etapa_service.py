@@ -3,14 +3,7 @@ from models.etapa import Etapa, EstadoEtapa
 from schemas.etapas import EtapaCreate
 from datetime import date
 
-def crear_etapa(db: Session, etapa: EtapaCreate):
-    nueva_etapa = Etapa(nombre=etapa.titulo, 
-                            descripcion=etapa.descripcion, 
-                            fecha_creacion=date,
-                            fecha_inicio=etapa.fecha_inicio, 
-                            fecha_fin=etapa.fecha_fin,
-                            id_proyecto=etapa.id_proyecto,
-                            estado=EstadoEtapa.publicada)
+def crear_etapa(db: Session, nueva_etapa: Etapa):
     db.add(nueva_etapa)
     db.commit()
     db.refresh(nueva_etapa)

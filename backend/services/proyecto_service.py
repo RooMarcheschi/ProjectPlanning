@@ -3,11 +3,7 @@ from models.proyecto import Proyecto, EstadoProyecto
 from schemas.proyectos import ProyectoCreate
 from datetime import date
 
-def crear_proyecto(db: Session, proyecto: ProyectoCreate):
-    nuevo_proyecto = Proyecto(nombre=proyecto.titulo, 
-                            descripcion=proyecto.descripcion, 
-                            fecha_creacion=date,
-                            estado=EstadoProyecto.publicado)
+def crear_proyecto(db: Session, nuevo_proyecto: Proyecto):
     db.add(nuevo_proyecto)
     db.commit()
     db.refresh(nuevo_proyecto)

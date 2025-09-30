@@ -98,7 +98,7 @@ function Form() {
         console.log(bodyJSON);
         
         try {
-            const response = await fetch("http://localhost:8000/submitProject",
+            const response = await fetch("http://localhost:8000/proyectos/crearProyecto",
                 {
                     method: "POST",
                     headers: {
