@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
+from bonita_client import BonitaClient
 from sqlalchemy.orm import Session
 from services import proyecto_service, etapa_service
 from models.proyecto import Proyecto, EstadoProyecto
 from models.etapa import Etapa, EstadoEtapa
 from datetime import date
 from config.database import get_db
+from dependencies import get_bonita_client
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
@@ -22,6 +24,9 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
 
     if not project_name or type(project_name) != str or project_name.strip() == "":
         return {"success": False, "message": "Invalid Project name"}
+
+    if proyecto_service.obtener_proyecto_por_titulo(db, project_name):
+        return {"success": False, "message": "Project name already in use"}
 
     if not amount_stages or type(amount_stages) != int:
         return {"success": False, "message": "Invalid amount of stages"}
@@ -46,6 +51,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         proy = Proyecto(
             titulo=project_name,
             descripcion=project_desc,
+            ong=ong_Name,
             fecha_creacion=date.today(),
             estado=EstadoProyecto.publicado,
         )
@@ -65,7 +71,24 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
                 estado=EstadoEtapa.publicada,
             )
             nueva_etapa = etapa_service.crear_etapa(db, etapa)
+
+        # Conection with Bonita
+        # bonita = get_bonita_client()
+        bonita = get_bonita_client()
+        # Consigo el id del proceso, antes era "pool" lo tuve q cambiar en bonita
+        process_id = bonita.get_process_id_by_name("Proyecto")
+        # Inicio el proceso con las variables, capaz tendriamos q añadir variables?
+        # Nombre de ong? Descripcion? etc?
+        result = bonita.start_process(process_definition_id=process_id)
+        print(result["caseId"])
+        res = bonita.set_case_variable(
+            case_id=result["caseId"],
+            variable_name="etapasTotales",
+            value=amount_stages,
+            type_hint="java.lang.Integer",
+            debug=True,
+        )
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
-        return {"success": False, "message": f"Error with db :{e}"}
+        raise HTTPException(status_code=500, detail=str(e))
