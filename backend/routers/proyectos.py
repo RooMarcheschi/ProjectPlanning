@@ -25,7 +25,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
     if not project_name or type(project_name) != str or project_name.strip() == "":
         return {"success": False, "message": "Invalid Project name"}
 
-    if proyecto_service.obtener_proyecto_por_titulo(db, project_name):
+    if proyecto_service.existe_proyecto_para_ong(db, project_name, ong_Name):
         return {"success": False, "message": "Project name already in use"}
 
     if not amount_stages or type(amount_stages) != int:
