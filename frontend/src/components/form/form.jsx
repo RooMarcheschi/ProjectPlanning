@@ -119,13 +119,13 @@ function Form() {
 
             const data = await response.json();
 
-            if (data.success) {
+            if (data.success) { //cambiar por data.ok
                 toast.success("Proyecto enviado correctamente! ", {
                     position: "bottom-right",
                     autoClose: 4000,
                 });
             } else {
-                toast.error(`Error al enviar el proyecto: ${data.message}`, {
+                toast.error(`Error al enviar el proyecto: ${data.message}`, { //cambiar por data.detail.message
                     position: "bottom-right",
                     autoClose: 4000
                 })
