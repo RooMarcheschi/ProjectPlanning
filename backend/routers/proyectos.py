@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from bonita_client import BonitaClient
 from sqlalchemy.orm import Session
 from services import proyecto_service, etapa_service
@@ -19,15 +19,22 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
     project_desc = proyecto["projectDesc"]
     amount_stages = proyecto["stagesAmount"]
 
+    # Validaciones
     if not ong_Name or type(ong_Name) != str or ong_Name.strip() == "":
         return {"success": False, "message": "Invalid ONG name"}
-
+    # raise HTTPException(
+    #     status_code=status.HTTP_409_CONFLICT,
+    #     detail={"field": "project_name", "message": "Project name already in use"},
+    # )
     if not project_name or type(project_name) != str or project_name.strip() == "":
         return {"success": False, "message": "Invalid Project name"}
 
     if proyecto_service.existe_proyecto_para_ong(db, project_name, ong_Name):
         return {"success": False, "message": "Project name already in use"}
-
+    # raise HTTPException(
+    #     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    #     detail={"field": "ong_Name", "message": "Invalid ONG name"},
+    # )
     if not amount_stages or type(amount_stages) != int:
         return {"success": False, "message": "Invalid amount of stages"}
 
@@ -48,6 +55,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             return {"success": False, "message": f"Error with stage {i+1}"}
 
     try:
+        # Subir a la db
         proy = Proyecto(
             titulo=project_name,
             descripcion=project_desc,
@@ -72,21 +80,19 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             )
             nueva_etapa = etapa_service.crear_etapa(db, etapa)
 
-        # Conection with Bonita
-        # bonita = get_bonita_client()
+        # Coneccion con Bonita
         bonita = get_bonita_client()
         # Consigo el id del proceso, antes era "pool" lo tuve q cambiar en bonita
         process_id = bonita.get_process_id_by_name("Proyecto")
         # Inicio el proceso con las variables, capaz tendriamos q añadir variables?
         # Nombre de ong? Descripcion? etc?
         result = bonita.start_process(process_definition_id=process_id)
-        print(result["caseId"])
+        # Seteo las variables del proceso, por ahora solo etaapasTotales
         res = bonita.set_case_variable(
             case_id=result["caseId"],
             variable_name="etapasTotales",
             value=amount_stages,
             type_hint="java.lang.Integer",
-            debug=True,
         )
         return {"success": True, "message": "Project submitted successfully"}
 

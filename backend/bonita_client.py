@@ -58,17 +58,16 @@ class BonitaClient:
         variable_name: str,
         value,
         type_hint: str = None,
-        debug: bool = False,
     ):
         """
         Actualiza el valor de una variable en un case existente.
         - case_id: ID del case
-        - variable_name: nombre de la variable (sensible a mayúsculas según el diseño del proceso)
-        - value: valor a setear (se convierte a string)
+        - variable_name: nombre de la variable
+        - value: valor a setear
         - type_hint: tipo Java opcional ("java.lang.Integer", "java.lang.String", etc.)
-          Si no se pasa, se infiere a partir del tipo Python.
+        Si no se pasa, se infiere a partir del tipo Python.
         """
-
+        # Mapeo del tipo de python al tipo de java
         TYPE_MAP = {
             int: "java.lang.Integer",
             float: "java.lang.Double",
@@ -82,11 +81,6 @@ class BonitaClient:
         payload = {"value": str(value) if value is not None else "", "type": type_hint}
 
         url = f"{self.base_url}/bonita/API/bpm/caseVariable/{case_id}/{variable_name}"
-
-        if debug:
-            print(f"PUT {url}")
-            print("Payload:", payload)
-
         resp = self.session.put(url, json=payload)
         if resp.status_code not in [200, 204]:
             raise Exception(
