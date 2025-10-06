@@ -19,7 +19,7 @@ class Proyecto(Base):
     ong = Column(String, nullable=False)
     fecha_creacion = Column(Date, nullable=False)
     estado = Column(Enum(EstadoProyecto), nullable=False)
-
+    idBonita = Column(Integer, nullable=True)
     etapas = relationship(
         "Etapa", back_populates="proyecto", cascade="all, delete-orphan"
     )
