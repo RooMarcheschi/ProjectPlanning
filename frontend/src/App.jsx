@@ -1,14 +1,25 @@
 import './css/app.css'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ChangePasswordForm from './components/login/changePasswordForm';
+import Form from './components/projectForm/form'
 import Header from './components/header/header'
-import Form from './components/form/form'
-import { ToastContainer, toast } from "react-toastify";
+import LoginForm from './components/login/loginForm';
+import RegisterForm from './components/login/registerForm';
+import { ToastContainer } from "react-toastify";
 
 function App() {
   return (
     <>
       <Header />
-      <Form />
       <ToastContainer />
+      <Router>
+        <Routes>
+          <Route path='/cargarProyecto' element={<Form />} />
+          <Route path='/login' element={<LoginForm />} />
+          <Route path='/register' element={<RegisterForm />} />
+          <Route path='/changePassword' element={<ChangePasswordForm />} />
+        </Routes>
+      </Router>
     </>
   )
 }

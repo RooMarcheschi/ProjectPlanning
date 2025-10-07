@@ -13,7 +13,7 @@ function Header() {
 
     return (
         <header className="flex items-center justify-between bg-blue-500 p-10 relative shadow-lg">
-            <a href="#">
+            <a href="/">
                 <img src={projectLogo} className="w-20 h-20 hover:cursor-pointer hover:-translate-y-1 transition-transform duration-200"
                 alt="Project Logo" />
             </a>

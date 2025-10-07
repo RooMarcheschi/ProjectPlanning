@@ -1,6 +1,8 @@
-import { useState } from "react"
-import Stage from "./stageForm"
-import { toast } from "react-toastify"
+import BlueButton from "../buttons/blueButton";
+import GreenButton from "../buttons/greenButton";
+import Stage from "./stageForm";
+import { toast } from "react-toastify";
+import { useState } from "react";
 
 function Form() {
     const [amountStages, setAmountStages] = useState(1);
@@ -46,7 +48,7 @@ function Form() {
         const projectName = formData.get('projectName');
         const projectDesc = formData.get('projectDesc');
         const stagesAmount = Number(formData.get('stagesAmount'));
-        
+
 
         if (!ongName || typeof ongName !== 'string' || ongName.trim() === '') {
             toast.error('El nombre de la ONG es inválido.', {
@@ -146,13 +148,16 @@ function Form() {
     return (
         <form className="flex flex-col justify-center items-center border-2 max-w-lg mx-auto mt-12 mb-12 p-8 bg-white rounded-2xl shadow-2xl space-y-6" method="POST" onSubmit={submitProject}>
             <h1 className="text-2xl font-bold text-blue-700 mb-2">Registrar Proyecto</h1>
+            <p className="text-gray-600 mb-4">
+                Cargá un proyecto de tu ONG, detallando todas las necesidades.
+            </p>
             <div className="w-full">
                 <label className="block text-gray-700 font-semibold mb-1" htmlFor="ongName">
                     Nombre de la ONG:
                 </label>
                 <input
                     type="text"
-                    className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition"
+                    className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition hover:border-blue-200"
                     placeholder="Juntos por un sueño"
                     name="ongName"
                     required
@@ -166,7 +171,7 @@ function Form() {
                 </label>
                 <input
                     type="text"
-                    className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition"
+                    className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition hover:border-blue-200"
                     placeholder="Asfaltado de calles en Tucumán"
                     name="projectName"
                     required
@@ -178,7 +183,7 @@ function Form() {
                 <label className="block text-gray-700 font-semibold mb-1" htmlFor="projectDesc">
                     Descripción del proyecto:
                 </label>
-                <textarea name="projectDesc" id="projectDesc" className="border-2 border-gray-300 rounded px-3 py-2 h-30 w-full focus:outline-none focus:border-blue-400 transition"
+                <textarea name="projectDesc" id="projectDesc" className="border-2 border-gray-300 rounded px-3 py-2 h-30 w-full focus:outline-none focus:border-blue-400 transition hover:border-blue-200"
                     placeholder="Este proyecto ayudará a mas de 500 familias a..."
                 >
                 </textarea>
@@ -200,17 +205,11 @@ function Form() {
                     name="stagesAmount"
                     required
                 />
-                <button
-                    className={`bg-green-600 rounded px-4 py-2 text-white font-semibold shadow transition
-                        ${!confirmedStages
-                            ? "hover:bg-green-700 hover:scale-105"
-                            : "opacity-60 cursor-not-allowed"
-                        }`}
-                    onClick={() => setConfirmedStages(true)}
-                    disabled={confirmedStages}
-                >
-                    Confirmar
-                </button>
+                <GreenButton
+                    text={"Confirmar"}
+                    allowed={confirmedStages}
+                    onClickFunction={() => setConfirmedStages(true)}
+                />
             </div>
 
             {confirmedStages &&
@@ -257,10 +256,10 @@ function Form() {
                             &gt;
                         </button>
                     </div>
-
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded hover:cursor-pointer hover:scale-105 transition font-semibold" type="submit">
-                        Enviar proyecto
-                    </button>
+                    <BlueButton
+                        text={"Enviar proyecto"}
+                        type={"submit"}
+                    />
                 </div>
             }
         </form>
