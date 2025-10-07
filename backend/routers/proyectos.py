@@ -55,16 +55,37 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             return {"success": False, "message": f"Error with stage {i+1}"}
 
     try:
-        # Subir a la db
+        # Coneccion con Bonita
+        bonita = get_bonita_client()
+        # Consigo el id del proceso
+        process_id = bonita.get_process_id_by_name("Proyecto")
+        # Inicio el proceso con las variables
+        result = bonita.start_process(process_definition_id=process_id)
+        # Seteo las variables del proceso, por ahora solo etaapasTotales
+        res = bonita.set_case_variable(
+            case_id=result["caseId"],
+            variable_name="etapasTotales",
+            value=amount_stages,
+            type_hint="java.lang.Integer",
+        )
+        # Subir a la db el proyecto
         proy = Proyecto(
             titulo=project_name,
             descripcion=project_desc,
             ong=ong_Name,
             fecha_creacion=date.today(),
             estado=EstadoProyecto.publicado,
+            idBonita=result["caseId"],
         )
         nuevo_proyecto = proyecto_service.crear_proyecto(db, proy)
-
+        # Seteo la variable iddb en bonita
+        res = bonita.set_case_variable(
+            case_id=result["caseId"],
+            variable_name="iddb",
+            value=nuevo_proyecto.id,
+            type_hint="java.lang.Integer",
+        )
+        # Subir a la db las etapas
         for i, stage in enumerate(proyecto["stages"]):
             name = stage["name"]
             desc = stage["description"]
@@ -79,21 +100,6 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
                 estado=EstadoEtapa.publicada,
             )
             nueva_etapa = etapa_service.crear_etapa(db, etapa)
-
-        # Coneccion con Bonita
-        bonita = get_bonita_client()
-        # Consigo el id del proceso, antes era "pool" lo tuve q cambiar en bonita
-        process_id = bonita.get_process_id_by_name("Proyecto")
-        # Inicio el proceso con las variables, capaz tendriamos q añadir variables?
-        # Nombre de ong? Descripcion? etc?
-        result = bonita.start_process(process_definition_id=process_id)
-        # Seteo las variables del proceso, por ahora solo etaapasTotales
-        res = bonita.set_case_variable(
-            case_id=result["caseId"],
-            variable_name="etapasTotales",
-            value=amount_stages,
-            type_hint="java.lang.Integer",
-        )
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
