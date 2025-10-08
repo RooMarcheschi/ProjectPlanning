@@ -1,7 +1,10 @@
 from config.database import get_db
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
+from models.user import User
+from services import user_service
 import re
+
 
 router = APIRouter(prefix="/users")
 
@@ -12,7 +15,7 @@ def register_user(user: dict = Body(...), db: Session = Depends(get_db)):
     email: str = user["email"]
     password: str = user["password"]
     email_regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
-
+    print("llegue")
     if not name or type(name) != str or name.strip() == "":
         return {"success": False, "message": "Invalid name"}
 
@@ -34,7 +37,22 @@ def register_user(user: dict = Body(...), db: Session = Depends(get_db)):
         return {"success": False, "message": "Invalid password"}
 
     # Validacion con BD (el mail no esté registrado)
+    if user_service.obtener_usuario_por_email(db, email):
+        return {"success": False, "message": "Email already in use"}
+    
+    # que el username no este registrado
+    if user_service.obtener_usuario_por_username(db, name):
+        return {"success": False, "message": "Username already in use"}
 
     # Subir usuario a BD
-
-    return {"success": True, "message": "Upload successful"}
+    try:
+        user = User(
+            username=name,
+            password=password,
+            email=email
+        )
+        nuevo_usuario = user_service.crear_usuario(db, user)
+        return {"success": True, "message": "Upload successful"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
