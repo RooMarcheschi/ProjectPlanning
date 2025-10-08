@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Enum
+from sqlalchemy import Column, ForeignKey, Integer, String, Date, Enum
 from sqlalchemy.orm import relationship
 from config.database import Base
 import enum
@@ -19,7 +19,9 @@ class Proyecto(Base):
     ong = Column(String, nullable=False)
     fecha_creacion = Column(Date, nullable=False)
     estado = Column(Enum(EstadoProyecto), nullable=False)
+    #ong_id = Column(Integer, ForeignKey("ongs.id"))
 
     etapas = relationship(
         "Etapa", back_populates="proyecto", cascade="all, delete-orphan"
     )
+    #ong_new = relationship("Ong", back_populates="proyectos")
