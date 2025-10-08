@@ -2,7 +2,7 @@ from fastapi import Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from bonita_client import BonitaClient
-from routers import proyectos, etapas, users
+from routers import proyectos, etapas, users, auth
 
 
 origins = [
@@ -16,6 +16,7 @@ app = FastAPI()
 app.include_router(proyectos.router)
 app.include_router(etapas.router)
 app.include_router(users.router)
+app.include_router(auth.router)
 
 app.add_middleware(
     CORSMiddleware,

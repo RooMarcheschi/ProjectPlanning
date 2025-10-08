@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from models.user import User
 from services import user_service
 import re
+from core.security import get_password_hash as hash_password
 
 
 router = APIRouter(prefix="/users")
@@ -14,6 +15,7 @@ def register_user(user: dict = Body(...), db: Session = Depends(get_db)):
     name: str = user["name"]
     email: str = user["email"]
     password: str = user["password"]
+    print(password)
     email_regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
     print("llegue")
     if not name or type(name) != str or name.strip() == "":
@@ -39,20 +41,19 @@ def register_user(user: dict = Body(...), db: Session = Depends(get_db)):
     # Validacion con BD (el mail no esté registrado)
     if user_service.obtener_usuario_por_email(db, email):
         return {"success": False, "message": "Email already in use"}
-    
+
     # que el username no este registrado
     if user_service.obtener_usuario_por_username(db, name):
         return {"success": False, "message": "Username already in use"}
 
     # Subir usuario a BD
     try:
-        user = User(
-            username=name,
-            password=password,
-            email=email
-        )
+        print(password)  # 123456
+        hashed = hash_password(password)
+        print(hashed, len(hashed))  # no aparece
+        user = User(username=name, password=hashed, email=email)
         nuevo_usuario = user_service.crear_usuario(db, user)
         return {"success": True, "message": "Upload successful"}
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
