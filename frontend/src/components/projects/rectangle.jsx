@@ -1,6 +1,6 @@
-function Rectangle({ title }) {
+function Rectangle({ title, redirect }) {
     return (
-        <a href="/cargarProyecto" className="flex flex-col justify-center items-center bg-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-shadow cursor-pointer">
+        <a href={redirect} className="flex flex-col justify-center items-center bg-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-shadow cursor-pointer">
             {title === "Crear proyecto" ? (
                 <span className="text-6xl text-black">+</span>
             ) : (

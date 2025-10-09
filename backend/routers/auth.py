@@ -17,7 +17,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.username == form_data.username).first()
+    print(f" CONTRA FORM {form_data.password}")
+    user = user_service.obtener_usuario_por_email(db = db, user_email=form_data.username)
+    print(f"USUARIO: {user.password}")
+    # user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 

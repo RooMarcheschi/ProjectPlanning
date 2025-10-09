@@ -3,13 +3,13 @@ import { toast } from "react-toastify";
 
 function LoginForm() {
 
-    const login = (e) => {
+    const login = async (e) => {
         e.preventDefault();
 
         const formData = new FormData(e.target);
         const email = formData.get("loginEmail");
         const password = formData.get("loginPassword");
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const passwordRegex = /^(?=.*\d).+$/;
 
@@ -29,12 +29,42 @@ function LoginForm() {
             return;
         }
 
-        const bodyJSON = {
-            email: email,
-            password: password,
-        };
-
-        // Lógica de inicio de sesión
+        try {
+            const response = await fetch("http://localhost:8000/auth/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({
+                        username: email,
+                        password,
+                    }),
+                });
+            
+            if (response.ok) {
+                const responseToken = await response.json()
+                localStorage.setItem("token", responseToken.access_token);
+                toast.success("Sesión iniciada correctamente!", {
+                    position: "bottom-right",
+                    autoClose: 2000,
+                });
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 2000);
+            } else {
+                toast.error("Usuario o contraseña incorrectos.", {
+                    position: "bottom-right",
+                    autoClose: 4000,
+                });
+            }
+        }
+        catch (error) {
+            toast.error(`Usuario o contraseña incorrectos: ${error}`, {
+                position: "bottom-right",
+                autoClose: 4000,
+            });
+        }
     }
 
     return (
