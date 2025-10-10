@@ -22,11 +22,15 @@ def eliminar_etapa(db: Session, etapa_id: int):
     return etapa
 
 
-def get_all_published_etapas(db: Session):
-    etapas = db.query(Etapa).filter(Etapa.estado == EstadoEtapa.publicada).all()
-    for etapa in etapas:
-        etapa.ong = db.query(Proyecto).filter(Proyecto.id == etapa.id_proyecto).first().ong
-    return etapas
+def get_all_etapas_filter(ongName: str, db: Session):
+    all_published_etapas = db.query(Etapa).filter(Etapa.estado == EstadoEtapa.publicada).all()
+    not_mine_etapas: list = []
+    for etapa in all_published_etapas:
+        proyect = db.query(Proyecto).filter(Proyecto.id == etapa.id_proyecto).first().ong
+        if proyect != ongName:
+            etapa.ong = proyect
+            not_mine_etapas.append(etapa)
+    return not_mine_etapas
 
 def get_etapa_by_id(id: int, db: Session):
     etapa = db.query(Etapa).filter(Etapa.id == id).first()

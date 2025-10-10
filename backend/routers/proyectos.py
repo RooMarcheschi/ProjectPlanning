@@ -20,26 +20,39 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
     amount_stages = proyecto["stagesAmount"]
 
     # Validaciones
-    if not ong_Name or type(ong_Name) != str or ong_Name.strip() == "":
-        return {"success": False, "message": "Invalid ONG name"}
-    # raise HTTPException(
-    #     status_code=status.HTTP_409_CONFLICT,
-    #     detail={"field": "project_name", "message": "Project name already in use"},
-    # )
+
     if not project_name or type(project_name) != str or project_name.strip() == "":
-        return {"success": False, "message": "Invalid Project name"}
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "field": "project_name",
+                "message": "El nombre del proyecto es inválido",
+            },
+        )
 
     if proyecto_service.existe_proyecto_para_ong(db, project_name, ong_Name):
-        return {"success": False, "message": "Project name already in use"}
-    # raise HTTPException(
-    #     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-    #     detail={"field": "ong_Name", "message": "Invalid ONG name"},
-    # )
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "field": "project_name",
+                "message": "El nombre del proyecto ya está en uso",
+            },
+        )
+
     if not amount_stages or type(amount_stages) != int:
-        return {"success": False, "message": "Invalid amount of stages"}
+        raise HTTPException(
+            status_code=409,
+            detail={"field": "amount_stages", "message": "Cantidad de etapas inválida"},
+        )
 
     if not project_desc or type(project_desc) != str or project_desc.strip() == "":
-        return {"success": False, "message": "Invalid Project description"}
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "field": "project_desc",
+                "message": "Descripción de proyecto inválida",
+            },
+        )
 
     for i, stage in enumerate(proyecto["stages"]):
         name = stage["name"]
@@ -52,10 +65,16 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             or type(desc) != str
             or desc.strip() == ""
         ):
-            return {"success": False, "message": f"Error with stage {i+1}"}
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "field": "project_desc",
+                    "message": f"Error con la etapa {i+1}",
+                },
+            )
 
     try:
-        # Coneccion con Bonita
+        # Conexión con Bonita
         bonita = get_bonita_client()
         # Consigo el id del proceso
         process_id = bonita.get_process_id_by_name("Proyecto")

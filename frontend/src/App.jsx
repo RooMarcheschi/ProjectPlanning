@@ -4,7 +4,8 @@ import ChangePasswordForm from './components/login/changePasswordForm';
 import Form from './components/projectForm/form'
 import Header from './components/header/header'
 import LoginForm from './components/login/loginForm';
-import LandingPage from './components/projects/landingPage';
+import LandingPage from './components/landingPage/landingPage';
+import MyProjects from './components/projects/myProjects';
 import ProtectedRoute from './components/login/protectedRoute';
 import PublicRoute from './components/login/publicRoute';
 import RegisterForm from './components/login/registerForm';
@@ -17,7 +18,7 @@ function App() {
       <ToastContainer />
       <Router>
         <Routes>
-
+          {/* Rutas sin inicio de sesión*/}
           <Route path='/login' element={
             <PublicRoute children={<LoginForm />} />
           } />
@@ -28,12 +29,18 @@ function App() {
             <PublicRoute children={<ChangePasswordForm />} />
           } />
 
+
+          {/* Rutas con inicio de sesión*/}
           <Route path='/cargarProyecto' element={
             <ProtectedRoute children={<Form />} />
           } />
           <Route path='/' element={
             <ProtectedRoute children={<LandingPage />} />
           } />
+          <Route path='/myProjects' element={
+            <ProtectedRoute children={<MyProjects />} />
+          }
+          />
         </Routes>
       </Router>
     </>

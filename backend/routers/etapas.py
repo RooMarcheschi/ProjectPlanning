@@ -10,9 +10,5 @@ router = APIRouter(
 )
 
 @router.get("/")
-def get_all_etapas(db: Session = Depends(get_db)):
-    return etapa_service.get_all_published_etapas(db)
-
-@router.get("/{id}")
-def get_etapa(id: int, db: Session = Depends(get_db)):
-    return etapa_service.get_etapa_by_id(id, db)
+def get_all_etapas(name: str, db: Session = Depends(get_db)):
+    return etapa_service.get_all_etapas_filter(db=db, ongName=name)

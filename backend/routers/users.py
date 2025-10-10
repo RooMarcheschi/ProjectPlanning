@@ -15,9 +15,7 @@ def register_user(user: dict = Body(...), db: Session = Depends(get_db)):
     name: str = user["name"]
     email: str = user["email"]
     password: str = user["password"]
-    print(password)
     email_regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
-    print("llegue")
     if not name or type(name) != str or name.strip() == "":
         return {"success": False, "message": "Invalid name"}
 

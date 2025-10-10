@@ -12,6 +12,11 @@ function Header() {
     const [showNotifications, setShowNotifications] = useState(true);
     const token = localStorage.getItem("token");
 
+    const logout = () => {
+        localStorage.clear();
+        window.location.href = "/login";
+    }
+
     return (
         <header className="flex items-center justify-between bg-blue-500 p-10 relative shadow-lg">
             <a href="/">
@@ -35,7 +40,7 @@ function Header() {
                                 <ConfigMenu text="Mis proyectos" />
                                 <ConfigMenu text="Mis contribuciones" />
                                 <ConfigMenu text="Configuración" />
-                                <ConfigMenu text="Cerrar sesión" />
+                                <ConfigMenu text="Cerrar sesión" onClickFunction={logout}/>
                             </div>
                         )}
                         {openNotifications && (

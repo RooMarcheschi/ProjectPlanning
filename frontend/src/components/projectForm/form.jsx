@@ -44,19 +44,10 @@ function Form() {
         e.preventDefault();
 
         const formData = new FormData(e.target);
-        const ongName = formData.get('ongName');
+        const ongName = localStorage.getItem("name");
         const projectName = formData.get('projectName');
         const projectDesc = formData.get('projectDesc');
         const stagesAmount = Number(formData.get('stagesAmount'));
-
-
-        if (!ongName || typeof ongName !== 'string' || ongName.trim() === '') {
-            toast.error('El nombre de la ONG es inválido.', {
-                position: "bottom-right",
-                autoClose: 4000,
-            });
-            return;
-        }
 
         if (!projectName || typeof projectName !== 'string' || projectName.trim() === '') {
             toast.error('El nombre del proyecto es inválido.', {
@@ -118,16 +109,15 @@ function Form() {
                     body: JSON.stringify(bodyJSON)
                 }
             );
-
-            const data = await response.json();
-
-            if (data.success) { //cambiar por data.ok
+            
+            if (response.ok) {
                 toast.success("Proyecto enviado correctamente! ", {
                     position: "bottom-right",
                     autoClose: 4000,
                 });
             } else {
-                toast.error(`Error al enviar el proyecto: ${data.message}`, { //cambiar por data.detail.message
+                const data = await response.json();
+                toast.error(`Error al enviar el proyecto: ${data.detail.message}`, {
                     position: "bottom-right",
                     autoClose: 4000
                 })
@@ -139,10 +129,10 @@ function Form() {
             })
         }
 
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-            setTimeout(() => window.location.reload(), 800);
-        }, 4000);
+        // setTimeout(() => {
+        //     window.scrollTo({ top: 0, behavior: "smooth" });
+        //     setTimeout(() => window.location.reload(), 800);
+        // }, 4000);
     }
 
     return (
@@ -151,19 +141,6 @@ function Form() {
             <p className="text-gray-600 mb-4">
                 Cargá un proyecto de tu ONG, detallando todas las necesidades.
             </p>
-            <div className="w-full">
-                <label className="block text-gray-700 font-semibold mb-1" htmlFor="ongName">
-                    Nombre de la ONG:
-                </label>
-                <input
-                    type="text"
-                    className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition hover:border-blue-200"
-                    placeholder="Juntos por un sueño"
-                    name="ongName"
-                    required
-                    id="ongName"
-                />
-            </div>
 
             <div className="w-full">
                 <label className="block text-gray-700 font-semibold mb-1" htmlFor="projectName">

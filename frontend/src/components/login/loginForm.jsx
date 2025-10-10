@@ -41,17 +41,18 @@ function LoginForm() {
                         password,
                     }),
                 });
-            
             if (response.ok) {
                 const responseToken = await response.json()
                 localStorage.setItem("token", responseToken.access_token);
-                toast.success("Sesión iniciada correctamente!", {
+                localStorage.setItem("id", responseToken.id);
+                localStorage.setItem("name", responseToken.name)
+                toast.success("Iniciando sesión...", {
                     position: "bottom-right",
-                    autoClose: 2000,
+                    autoClose: 1000,
                 });
                 setTimeout(() => {
                     window.location.href = "/";
-                }, 2000);
+                }, 1000);
             } else {
                 toast.error("Usuario o contraseña incorrectos.", {
                     position: "bottom-right",

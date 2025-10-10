@@ -13,19 +13,19 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    print(f" CONTRA FORM {form_data.password}")
+    email_regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+    if not re.match(email_regex, form_data.username):
+        raise HTTPException(status_code=400, detail="Invalid email")
     user = user_service.obtener_usuario_por_email(db = db, user_email=form_data.username)
-    print(f"USUARIO: {user.password}")
-    # user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
     token = create_access_token(data={"sub": user.username})
-    return {"access_token": token, "token_type": "bearer"}
+    return {"access_token": token, "token_type": "bearer", "id": user.id, "name": user.username}
 
 
 @router.get("/me")

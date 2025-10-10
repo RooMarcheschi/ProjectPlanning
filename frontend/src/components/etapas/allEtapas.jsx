@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import Etapa from "./etapa";
+import { toast } from "react-toastify";
 
 
 function AllEtapas() {
+    const ongName = localStorage.getItem("name");
     const [etapas, setEtapas] = useState([]);
 
     useEffect(() => {
@@ -11,8 +13,15 @@ function AllEtapas() {
     }, []);
 
     const getEtapas = async () => {
-        const etapas = await fetch("http://localhost:8000/etapas").then(res => res.json());
-        setEtapas(etapas);
+        try {
+            const etapas = await fetch(`http://localhost:8000/etapas?name=${encodeURIComponent(ongName)}`).then(res => res.json());
+            setEtapas(etapas);
+        } catch (error) {
+            toast.error(`Error getting etapas: ${error}`, {
+                position: "bottom-right",
+                autoClose: 4000,
+            })
+        }
     }
 
     return (
@@ -22,7 +31,7 @@ function AllEtapas() {
             </h1>
 
             {etapas.map(etapa => (
-                    <Etapa etapa={etapa} key={etapa.id} />
+                <Etapa etapa={etapa} key={etapa.id} />
             ))}
         </div>
     )
