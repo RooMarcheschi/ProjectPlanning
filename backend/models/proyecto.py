@@ -16,12 +16,13 @@ class Proyecto(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     titulo = Column(String, nullable=False)
     descripcion = Column(String, nullable=False)
-    ong = Column(String, nullable=False)
     fecha_creacion = Column(Date, nullable=False)
     estado = Column(Enum(EstadoProyecto), nullable=False)
-    # ong_id = Column(Integer, ForeignKey("ongs.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
     idBonita = Column(Integer, nullable=True)
+    cant_etapas = Column(Integer, nullable=False)
+    
     etapas = relationship(
         "Etapa", back_populates="proyecto", cascade="all, delete-orphan"
     )
-    # ong_new = relationship("Ong", back_populates="proyectos")
+    user = relationship("User", back_populates="proyectos")

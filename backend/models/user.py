@@ -11,8 +11,8 @@ class User(Base):
     password = Column(String(100), nullable=False)
     email = Column(String, nullable=False, unique=True)
 
-    # ong = relationship("Ong", back_populates="user", uselist=False)
-
+    proyectos = relationship("Proyecto", back_populates="user", cascade="all, delete-orphan")
+    
 
 def __repr__(self):
     return f"<User(id='{self.id}', username='{self.username}', email='{self.email}')>"
