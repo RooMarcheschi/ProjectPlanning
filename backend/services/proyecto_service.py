@@ -18,11 +18,15 @@ def obtener_proyecto_por_id(db: Session, proyecto_id: int):
 def obtener_proyecto_por_titulo(db: Session, proyecto_titulo: String):
     return db.query(Proyecto).filter(Proyecto.titulo == proyecto_titulo).first()
 
-def existe_proyecto_para_ong(db: Session, proyecto_titulo: String, nombre_ong: String):
+def existe_proyecto_para_ong(db: Session, proyecto_titulo: String, u_id: int):
     return db.query(Proyecto).filter(
-        Proyecto.ong.ilike(nombre_ong),
+        Proyecto.user_id == u_id,
         Proyecto.titulo.ilike(proyecto_titulo)
     ).first() is not None
+
+def obtener_proyectos_para_ong(db: Session, u_id: int):
+    return db.query(Proyecto).filter(Proyecto.user_id == u_id).all()
+
 def eliminar_proyecto(db: Session, proyecto_id: int):
     proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
     if proyecto:
