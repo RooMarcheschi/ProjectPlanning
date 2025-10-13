@@ -14,10 +14,11 @@ router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 # Crear un proyecto
 @router.post("/crearProyecto")
 def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
-    ong_Name = proyecto["ongName"]
+    ong_Name = proyecto["ongName"] #vendria a ser el username ahora
     project_name = proyecto["projectName"]
     project_desc = proyecto["projectDesc"]
     amount_stages = proyecto["stagesAmount"]
+    u_id = int(proyecto["userId"])
 
     # Validaciones
 
@@ -30,7 +31,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             },
         )
 
-    if proyecto_service.existe_proyecto_para_ong(db, project_name, ong_Name):
+    if proyecto_service.existe_proyecto_para_ong(db, project_name, u_id):
         raise HTTPException(
             status_code=409,
             detail={
@@ -91,10 +92,11 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         proy = Proyecto(
             titulo=project_name,
             descripcion=project_desc,
-            ong=ong_Name,
+            user_id=u_id,
             fecha_creacion=date.today(),
             estado=EstadoProyecto.publicado,
             idBonita=result["caseId"],
+            cant_etapas=amount_stages
         )
         nuevo_proyecto = proyecto_service.crear_proyecto(db, proy)
         # Seteo la variable iddb en bonita
@@ -111,6 +113,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             # tenemos que chequear fecha inicio y fecha fin
             etapa = Etapa(
                 id_proyecto=nuevo_proyecto.id,
+                id_user=u_id,
                 titulo=name,
                 descripcion=desc,
                 fecha_creacion=date.today(),
@@ -122,4 +125,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
+        import traceback
+        print("🔥 ERROR en crear_proyecto 🔥")
+        traceback.print_exc()   # muestra el stack completo en los logs
         raise HTTPException(status_code=500, detail=str(e))
