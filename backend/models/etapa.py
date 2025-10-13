@@ -9,6 +9,7 @@ class EstadoEtapa(enum.Enum):
     publicada = "publicada"
     ejecutandose = "ejecutandose"
     terminada = "terminada"
+    cubierta = "cubierta"
 
 
 class Etapa(Base):
@@ -16,6 +17,7 @@ class Etapa(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     id_proyecto = Column(Integer, ForeignKey("proyectos.id"), nullable=False)
+    id_user = Column(Integer, ForeignKey("users.id"), nullable=False)
     titulo = Column(String, nullable=False)
     descripcion = Column(String, nullable=False)
     fecha_creacion = Column(Date, nullable=False)
