@@ -96,6 +96,8 @@ function Form() {
             projectName: projectName,
             projectDesc: projectDesc,
             stagesAmount: stagesAmount,
+            userId: localStorage.getItem("id"),
+            token: localStorage.getItem("token"),
             stages: stages
         }
 
