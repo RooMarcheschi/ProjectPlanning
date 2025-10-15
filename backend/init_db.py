@@ -3,6 +3,7 @@ from models.proyecto import Proyecto  # Importá todos los modelos para que se r
 from models.etapa import Etapa
 from models.user import User
 from models.ong import Ong
+from models.compromiso import Compromiso
 
 print("Borrando todas las tablas!")
 Base.metadata.drop_all(bind=engine)

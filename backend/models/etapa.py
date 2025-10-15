@@ -26,3 +26,4 @@ class Etapa(Base):
     estado = Column(Enum(EstadoEtapa), nullable=False)
 
     proyecto = relationship("Proyecto", back_populates="etapas")
+    compromiso = relationship("Compromiso", back_populates="etapa", uselist=False)

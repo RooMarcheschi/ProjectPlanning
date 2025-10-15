@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from bonita_client import BonitaClient
 from sqlalchemy.orm import Session
-from services import proyecto_service, etapa_service
+from models.compromiso import Compromiso, EstadoCompromiso
+from services import compromiso_service, proyecto_service, etapa_service
 from models.proyecto import Proyecto, EstadoProyecto
 from models.etapa import Etapa, EstadoEtapa
 from datetime import date
@@ -122,6 +123,17 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
                 estado=EstadoEtapa.publicada,
             )
             nueva_etapa = etapa_service.crear_etapa(db, etapa)
+            # aca iria la creacion del compromiso teniendo en cuenta que para cada etapa hay un crompromiso
+            compromiso = Compromiso(
+                id_etapa=etapa.id,
+                descripcion=desc,
+                fecha_creacion=date.today(),
+                fecha_inicio=date.today(),
+                fecha_fin=date.today(),
+                estado=EstadoCompromiso.libre,
+            )
+            nuevo_compromiso = compromiso_service.crear_compromiso(db, compromiso)
+
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
