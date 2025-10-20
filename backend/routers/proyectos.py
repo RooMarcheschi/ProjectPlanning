@@ -126,10 +126,10 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             # aca iria la creacion del compromiso teniendo en cuenta que para cada etapa hay un crompromiso
             compromiso = Compromiso(
                 id_etapa=etapa.id,
-                descripcion=desc,
+                descripcion=f"Compromiso generado para la etapa {etapa.titulo}",
                 fecha_creacion=date.today(),
-                fecha_inicio=date.today(),
-                fecha_fin=date.today(),
+                fecha_inicio=date.today(), # cambiar
+                fecha_fin=date.today(), #cambiar
                 estado=EstadoCompromiso.libre,
             )
             nuevo_compromiso = compromiso_service.crear_compromiso(db, compromiso)
