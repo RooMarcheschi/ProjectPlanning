@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from models.etapa import Etapa, EstadoEtapa
 from datetime import date
 from models.proyecto import Proyecto
+from models.user import User
+from services.user_service import obtener_usuario_por_username
 
 
 def crear_etapa(db: Session, nueva_etapa: Etapa):
@@ -21,16 +23,9 @@ def eliminar_etapa(db: Session, etapa_id: int):
         db.commit()
     return etapa
 
-
 def get_all_etapas_filter(ongName: str, db: Session):
-    all_published_etapas = db.query(Etapa).filter(Etapa.estado == EstadoEtapa.publicada).all()
-    not_mine_etapas: list = []
-    for etapa in all_published_etapas:
-        proyect = db.query(Proyecto).filter(Proyecto.id == etapa.id_proyecto).first().ong
-        if proyect != ongName:
-            etapa.ong = proyect
-            not_mine_etapas.append(etapa)
-    return not_mine_etapas
+    user = obtener_usuario_por_username(db=db, user_username=ongName)
+    return (db.query(Etapa).filter(Etapa.estado == EstadoEtapa.publicada, Etapa.id_user != user.id).all())
 
 def get_etapa_by_id(id: int, db: Session):
     etapa = db.query(Etapa).filter(Etapa.id == id).first()
