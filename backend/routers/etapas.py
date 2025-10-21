@@ -12,3 +12,7 @@ router = APIRouter(
 @router.get("/")
 def get_all_etapas(name: str, db: Session = Depends(get_db)):
     return etapa_service.get_all_etapas_filter(db=db, ongName=name)
+
+@router.get("/")
+def get_etapas_from_project(project_id: int, db: Session = Depends(get_db)):
+    return etapa_service.get_etapas_from_project(db=db, project_id=project_id)
