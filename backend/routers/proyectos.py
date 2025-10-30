@@ -109,8 +109,9 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         )
         # Avance de las tareas del proceso
         activity = bonita.search_activity_by_case(case_id= result["caseId"])
-        #GET USER?
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaActividad encontrada:", activity)
+        bonita.assign_task(task_id=activity[0]["id"], user_id=1) # esta bien ponerlo al id 1
+        bonita.complete_activity(task_id=activity[0]["id"])
+        activity = bonita.search_activity_by_case(case_id= result["caseId"])
         bonita.assign_task(task_id=activity[0]["id"], user_id=1)
         bonita.complete_activity(task_id=activity[0]["id"])
         # Subir a la db las etapas
