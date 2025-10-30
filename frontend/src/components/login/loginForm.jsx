@@ -101,12 +101,12 @@ function LoginForm() {
                 />
 
                 <div className="flex justify-between mt-4">
-                    <a
+                    {/* <a
                         href="/changePassword"
                         className="text-blue-600 hover:underline transition-all duration-200 hover:text-lg"
                     >
                         ¿Olvidaste tu contraseña?
-                    </a>
+                    </a> */}
                     <a
                         href="/register"
                         className="text-blue-600 hover:underline transition-all duration-200 hover:text-lg"

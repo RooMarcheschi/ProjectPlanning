@@ -14,10 +14,10 @@ def obtener_usuario(db: Session):
 def obtener_usuario_por_id(db: Session, user_id: int):
     return db.query(User).filter(User.id == user_id).first()
 
-def obtener_usuario_por_email(db: Session, user_email: String):
+def obtener_usuario_por_email(db: Session, user_email: str):
     return db.query(User).filter(User.email == user_email).first()
 
-def obtener_usuario_por_username(db: Session, user_username: String):
+def obtener_usuario_por_username(db: Session, user_username: str):
     return db.query(User).filter(User.username == user_username).first()
 
 def eliminar_usuario(db: Session, user_id: int):
