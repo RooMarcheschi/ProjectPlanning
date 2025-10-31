@@ -25,7 +25,8 @@ def eliminar_etapa(db: Session, etapa_id: int):
 
 def get_all_etapas_filter(ongName: str, db: Session):
     user = obtener_usuario_por_username(db=db, user_username=ongName)
-    return (db.query(Etapa).filter(Etapa.estado == EstadoEtapa.publicada, Etapa.id_user != user.id).all())
+    if user:
+        return (db.query(Etapa).filter(Etapa.estado == EstadoEtapa.publicada, Etapa.id_user != user.id).all())
 
 def get_etapas_from_project(db: Session, project_id: int):
     return (db.query(Etapa).filter(Etapa.estado == EstadoEtapa.publicada, Etapa.id_proyecto != project_id).all())

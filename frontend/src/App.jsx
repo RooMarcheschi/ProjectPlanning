@@ -25,9 +25,9 @@ function App() {
           <Route path='/register' element={
             <PublicRoute children={<RegisterForm />} />
           } />
-          <Route path='/changePassword' element={
+          {/* <Route path='/changePassword' element={
             <PublicRoute children={<ChangePasswordForm />} />
-          } />
+          } /> */}
 
 
           {/* Rutas con inicio de sesión*/}
