@@ -1,5 +1,6 @@
 import BlueButton from "../buttons/blueButton";
 import GreenButton from "../buttons/greenButton";
+import LinkButton from "../buttons/linkButton";
 import Stage from "./stageForm";
 import { toast } from "react-toastify";
 import { useState } from "react";
@@ -189,8 +190,10 @@ function Form() {
                 />
             </div>
 
+            <LinkButton href="/" text={"Volver al inicio"} />
+
             {confirmedStages &&
-                <div className="flex flex-col mt-6 items-center w-full">
+                <div className="flex flex-col items-center w-full">
                     <span className="text-center font-semibold text-gray-700">Etapa {currentStage + 1} de {amountStages}</span>
 
                     <div className="flex flex-row justify-center items-center w-full max-w-lg">
@@ -236,6 +239,7 @@ function Form() {
                     <BlueButton
                         text={"Enviar proyecto"}
                         type={"submit"}
+                        active={true}
                     />
                 </div>
             }

@@ -1,26 +1,56 @@
-import BlueButton from "../buttons/blueButton"
+import { toast } from "react-toastify";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
-const Project = ({ name, stages = 10, completed = false }) => {
-    return (
-        <div
-            className={`flex flex-col justify-center items-center border-2 w-60 h-72 mx-auto p-6 rounded-2xl shadow-2xl space-y-4 transition-all 
-            ${completed ? "bg-green-900" : "bg-blue-900"} text-white`}
-        >
-            <div className="relative">
-                <div className="w-24 h-24 rounded-full border-8 border-blue-300 flex items-center justify-center bg-white">
-                    <span className="text-2xl font-bold text-black"> %</span>
-                </div>
-            </div>
+const Project = () => {
+    const { id: projectId } = useParams();
+    const [project, setProject] = useState();
+    const [etapas, setEtapas] = useState([]);
 
-            <p className="text-sm">
-                {completed ? "Proyecto completado" : `${stages} etapas cubiertas`}
-            </p>
+    useEffect(() => {
+        getProject();
+    }, [])
 
-            <h2 className="text-center  font-semibold">{name}</h2>
+    const getProject = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/proyectos/${projectId}`);
+            const data = await response.json()
+
+            if (data.success) {
+                setProject(data.project);
+            }
+            else {
+                toast.error("Error al conseguir la información del proyecto", {
+                    position: "bottom-right",
+                    autoClose: 2000,
+                });
+                setTimeout(() => { window.location.href = "/myProjects" }, 2000)
+            }
+        } catch (error) {
+            toast.error("Error al conseguir la información del proyecto", {
+                position: "bottom-right",
+                autoClose: 2000
+            });
+            setTimeout(() => { window.location.href = "/myProjects" }, 2000)
+        }
+    }
+
+    const getEtapas = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/etapas/project/${projectId}`);
+            const data = await response.json();
+
+            if (data.success)
+        } catch (error) {
             
-            <BlueButton text={"Info"} />
+        }
+    }
+
+    return (
+        <div className="">
+            <h1 className="text-3xl font-bold text-gray-800 m-4"> Proyecto {project?.titulo}</h1>
         </div>
-    );
-};
+    )
+}
 
 export default Project;

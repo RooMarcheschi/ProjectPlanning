@@ -1,28 +1,6 @@
-import { useEffect } from "react";
-import { useState } from "react";
 import Etapa from "./etapa";
-import { toast } from "react-toastify";
 
-
-function AllEtapas() {
-    const ongName = localStorage.getItem("name");
-    const [etapas, setEtapas] = useState([]);
-
-    useEffect(() => {
-        getEtapas();
-    }, []);
-
-    const getEtapas = async () => {
-        try {
-            const etapas = await fetch(`http://localhost:8000/etapas?name=${encodeURIComponent(ongName)}`).then(res => res.json());
-            setEtapas(etapas);
-        } catch (error) {
-            toast.error(`Error getting etapas: ${error}`, {
-                position: "bottom-right",
-                autoClose: 4000,
-            })
-        }
-    }
+const AllEtapas = ({etapas}) => {
 
     return (
         <div className="flex flex-col h-full border border-gray-400 rounded-2xl shadow-lg bg-blue-100 p-4 overflow-y-auto overflow-x-hidden">

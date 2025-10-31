@@ -14,7 +14,7 @@ function Etapa({ etapa }) {
 
             {!showButtonsRow ? (
                 <div className="mt-3 flex justify-center">
-                    <BlueButton text="Colaborar" onClickFunction={() => setShowButtonsRow(true)} />
+                    <BlueButton text="Colaborar" onClickFunction={() => setShowButtonsRow(true)} active={true} />
                 </div>
             ) : (
                 <div className="flex flex-row px-4 py-2 items-center justify-between">

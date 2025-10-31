@@ -1,4 +1,5 @@
 import BlueButton from "../buttons/blueButton";
+import LinkButton from "../buttons/linkButton";
 import { toast } from "react-toastify";
 
 function LoginForm() {
@@ -98,6 +99,7 @@ function LoginForm() {
                     text={"Iniciar sesión"}
                     classAttr={"mt-6 w-full"}
                     type={"submit"}
+                    active={true}
                 />
 
                 <div className="flex justify-between mt-4">
@@ -107,12 +109,7 @@ function LoginForm() {
                     >
                         ¿Olvidaste tu contraseña?
                     </a> */}
-                    <a
-                        href="/register"
-                        className="text-blue-600 hover:underline transition-all duration-200 hover:text-lg"
-                    >
-                        ¿No tenés una cuenta? Registrate
-                    </a>
+                    <LinkButton href="/register" text={"¿No tenés una cuenta? Registrate"} />
                 </div>
             </div>
         </form>
