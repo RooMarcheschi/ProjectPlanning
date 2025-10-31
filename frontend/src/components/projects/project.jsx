@@ -1,6 +1,6 @@
 import BlueButton from "../buttons/blueButton"
 
-const Project = ({ name, progress, stages, completed }) => {
+const Project = ({ name, stages = 10, completed = false }) => {
     return (
         <div
             className={`flex flex-col justify-center items-center border-2 w-60 h-72 mx-auto p-6 rounded-2xl shadow-2xl space-y-4 transition-all 
@@ -8,7 +8,7 @@ const Project = ({ name, progress, stages, completed }) => {
         >
             <div className="relative">
                 <div className="w-24 h-24 rounded-full border-8 border-blue-300 flex items-center justify-center bg-white">
-                    <span className="text-2xl font-bold text-black">{progress}%</span>
+                    <span className="text-2xl font-bold text-black"> %</span>
                 </div>
             </div>
 

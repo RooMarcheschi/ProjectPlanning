@@ -141,3 +141,12 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         print("🔥 ERROR en crear_proyecto 🔥")
         traceback.print_exc()   # muestra el stack completo en los logs
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/myProjects/{user_id}")
+def get_my_projects(user_id: int, db: Session = Depends(get_db)):
+    try:
+        proyectos = proyecto_service.obtener_proyectos_para_ong(db, user_id)
+        return {"success": True, "projects": proyectos}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

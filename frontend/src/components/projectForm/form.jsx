@@ -111,12 +111,15 @@ function Form() {
                     body: JSON.stringify(bodyJSON)
                 }
             );
-            
+
             if (response.ok) {
                 toast.success("Proyecto enviado correctamente! ", {
                     position: "bottom-right",
-                    autoClose: 4000,
+                    autoClose: 2000,
                 });
+                setTimeout(() => {
+                    window.location.href = "/myProjects";
+                }, 2000);
             } else {
                 const data = await response.json();
                 toast.error(`Error al enviar el proyecto: ${data.detail.message}`, {
@@ -130,11 +133,6 @@ function Form() {
                 autoClose: 4000
             })
         }
-
-        // setTimeout(() => {
-        //     window.scrollTo({ top: 0, behavior: "smooth" });
-        //     setTimeout(() => window.location.reload(), 800);
-        // }, 4000);
     }
 
     return (

@@ -15,7 +15,7 @@ function LandingPage() {
 
                 <div className="w-2/3 grid grid-rows-2 gap-6 p-6">
                     <Rectangle title="Crear proyecto" redirect={"/cargarProyecto"} />
-                    <Rectangle title="Mis proyectos" redirect={"/"} />
+                    <Rectangle title="Mis proyectos" redirect={"/myProjects"} />
                 </div>
             </div>
         </div>

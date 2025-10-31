@@ -1,12 +1,46 @@
 import Project from "./project";
+import { useEffect, useState } from "react";
 
 const MyProjects = () => {
+
+    const id = localStorage.getItem("id");
+    const [projects, setProjects] = useState([]);
+
+    useEffect(() => {
+        getProjects();
+        console.log(projects);
+    }, [])
+
+    const getProjects = async () => {
+        const response = await fetch(`http://localhost:8000/proyectos/myProjects/${id}`,
+            {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
+        const data = await response.json();
+        if (data.success) {
+            setProjects(data.projects);
+        }
+        else {
+            toast.error("Error al obtener los proyectos", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+        }
+    };
+
     return (
         <div className="flex justify-center items-center py-44">
             <div className="flex flex-row gap-8">
-                <Project name="Jóvenes Emprendedores" progress={80} stages="4 de 5" />
-                <Project name="Mujeres Empoderadas" progress={100} completed />
-                <Project name="Proyecto 3" progress={60} completed />
+                {projects.map((project) => (
+                    <Project
+                        key={project.id}
+                        name={project.name}
+                        progress={project.progress}
+                        stages={`${project.completedStages} de ${project.totalStages}`}
+                    />
+                ))}
             </div>
         </div>
     );
