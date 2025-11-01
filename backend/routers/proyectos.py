@@ -140,14 +140,15 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
                 "estado": getattr(etapa.estado, "name", str(etapa.estado)),
             }
             etapas.append(etapa_json)
-            nueva_etapa = etapa_service.crear_etapa(db, etapa)
+            nueva_etapa = etapa_service.crear_etapa(db, etapa)# Hay que borrarla en el futruo esta linea
+            # Ya que solo tendrian que estar en la nube
         res = bonita.set_case_variable(
         case_id=result["caseId"],
         variable_name="etapas",
         value=json.dumps(etapas),
         type_hint="java.lang.String",
         )
-        #https://projectplanning-cloud.onrender.com/auth/login
+        
         activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
         task2 = activity2[0]["id"]
         while activity2[0]["state"] != "ready":
@@ -158,6 +159,5 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
 
     except Exception as e:
         import traceback
-        print("🔥 ERROR en crear_proyecto 🔥")
-        traceback.print_exc()   # muestra el stack completo en los logs
+        #traceback.print_exc()   # muestra el stack completo en los logs
         raise HTTPException(status_code=500, detail=str(e))
