@@ -9,6 +9,7 @@ from models.etapa import Etapa, EstadoEtapa
 from datetime import date
 from config.database import get_db
 from dependencies import get_bonita_client
+import time
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
@@ -148,13 +149,22 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         value=json.dumps(etapas),
         type_hint="java.lang.String",
         )
-        
-        activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
-        task2 = activity2[0]["id"]
-        while activity2[0]["state"] != "ready":
+        id_ant = 9999999999999
+        for i in range(3):
+            
             activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
-        bonita.assign_task(task_id=task2, user_id=1)
-        res = bonita.complete_activity(task_id=task2)
+            while not activity2:
+                activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
+                time.sleep(1)
+            while activity2[0]["state"] != "ready" or id_ant == activity2[0]["id"]:
+                activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
+                print("Activity state:", activity2[0]["state"])
+                print("Activity id:", activity2[0]["id"])
+                print("Previous id:", id_ant)
+                time.sleep(1)
+            bonita.assign_task(task_id=activity2[0]["id"], user_id=2)
+            res = bonita.complete_activity(task_id=activity2[0]["id"])
+            id_ant = activity2[0]["id"]
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:

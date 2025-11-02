@@ -43,6 +43,11 @@ def asumir_compromiso(etapa_id: int, proyecto_id: int, db: Session = Depends(get
         value=etapa_id,
         type_hint="java.lang.Integer"
     )   
-    #Avanzar las actividades en Bonita 3 veces
-    
+    #Avanzar las actividades en Bonita 1 vez
+    activity = bonita.search_activity_by_case(case_id=case["id"])
+    task = activity[0]["id"]
+    while activity[0]["state"] != "ready":
+        activity = bonita.search_activity_by_case(case_id=case["id"])
+    bonita.assign_task(task_id=task, user_id=1)
+    res = bonita.complete_activity(task_id=task)
     return {"message": "Compromiso generado correctamente"}
