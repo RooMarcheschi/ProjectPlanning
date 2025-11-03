@@ -20,6 +20,10 @@ def obtener_usuario_por_email(db: Session, user_email: str):
 def obtener_usuario_por_username(db: Session, user_username: str):
     return db.query(User).filter(User.username == user_username).first()
 
+def puede_observar_id(db: Session, id:int):
+    user = db.query(User).filter(User.id == id).first()
+    return user.puede_observar
+
 def eliminar_usuario(db: Session, user_id: int):
     usuario = db.query(User).filter(User.id == user_id).first()
     if usuario:

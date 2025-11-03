@@ -49,7 +49,7 @@ def register_user(user: dict = Body(...), db: Session = Depends(get_db)):
         print(password)  # 123456
         hashed = hash_password(password)
         print(hashed, len(hashed))  # no aparece
-        user = User(username=name, password=hashed, email=email)
+        user = User(username=name, password=hashed, email=email, puede_observar=False)
         nuevo_usuario = user_service.crear_usuario(db, user)
         return {"success": True, "message": "Upload successful"}
 
