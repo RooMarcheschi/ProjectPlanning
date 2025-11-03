@@ -4,10 +4,10 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "8001:8001"
     volumes:
       - ./backend:/app
-    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8001
 
   frontend:
     build: ./frontend
