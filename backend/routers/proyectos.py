@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, status
+import json
 from bonita_client import BonitaClient
 from sqlalchemy.orm import Session
 from models.compromiso import Compromiso, EstadoCompromiso
@@ -8,6 +9,7 @@ from models.etapa import Etapa, EstadoEtapa
 from datetime import date
 from config.database import get_db
 from dependencies import get_bonita_client
+import time
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
@@ -109,15 +111,15 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
         )
         # Avance de las tareas del proceso
         activity = bonita.search_activity_by_case(case_id= result["caseId"])
-        #GET USER?
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaActividad encontrada:", activity)
-        bonita.assign_task(task_id=activity[0]["id"], user_id=1)
-        bonita.complete_activity(task_id=activity[0]["id"])
+        task1 = activity[0]["id"]
+        bonita.assign_task(task_id=task1, user_id=1) # esta bien ponerlo al id 1
+        res = bonita.complete_activity(task_id=task1)
         # Subir a la db las etapas
+        etapas = []
         for i, stage in enumerate(proyecto["stages"]):
             name = stage["name"]
             desc = stage["description"]
-            # tenemos que chequear fecha inicio y fecha fin
+
             etapa = Etapa(
                 id_proyecto=nuevo_proyecto.id,
                 id_user=u_id,
@@ -128,33 +130,46 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
                 fecha_fin=date.today(),
                 estado=EstadoEtapa.publicada,
             )
-            nueva_etapa = etapa_service.crear_etapa(db, etapa)
-            # aca iria la creacion del compromiso teniendo en cuenta que para cada etapa hay un crompromiso
-            compromiso = Compromiso(
-                id_etapa=etapa.id,
-                descripcion=f"Compromiso generado para la etapa {etapa.titulo}",
-                fecha_creacion=date.today(),
-                fecha_inicio=date.today(), # cambiar
-                fecha_fin=date.today(), #cambiar
-                estado=EstadoCompromiso.libre,
-            )
-            nuevo_compromiso = compromiso_service.crear_compromiso(db, compromiso)
 
+            # Preparar una representación JSON-friendly de la etapa (sin id de BD aún)
+            etapa_json = {
+                "titulo": etapa.titulo,
+                "descripcion": etapa.descripcion,
+                "fecha_inicio": etapa.fecha_inicio.isoformat() if hasattr(etapa.fecha_inicio, "isoformat") else str(etapa.fecha_inicio),
+                "fecha_fin": etapa.fecha_fin.isoformat() if hasattr(etapa.fecha_fin, "isoformat") else str(etapa.fecha_fin),
+                "id_proyecto": etapa.id_proyecto,
+                "estado": getattr(etapa.estado, "name", str(etapa.estado)),
+            }
+            etapas.append(etapa_json)
+            nueva_etapa = etapa_service.crear_etapa(db, etapa)# Hay que borrarla en el futruo esta linea
+            # Ya que solo tendrian que estar en la nube
+        res = bonita.set_case_variable(
+        case_id=result["caseId"],
+        variable_name="etapas",
+        value=json.dumps(etapas),
+        type_hint="java.lang.String",
+        )
+        id_ant = 9999999999999
+        for i in range(3):
+            
+            activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
+            while not activity2:
+                activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
+                time.sleep(1)
+            while activity2[0]["state"] != "ready" or id_ant == activity2[0]["id"]:
+                activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
+                print("Activity state:", activity2[0]["state"])
+                print("Activity id:", activity2[0]["id"])
+                print("Previous id:", id_ant)
+                time.sleep(1)
+            bonita.assign_task(task_id=activity2[0]["id"], user_id=2)
+            res = bonita.complete_activity(task_id=activity2[0]["id"])
+            id_ant = activity2[0]["id"]
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
         import traceback
-        print("🔥 ERROR en crear_proyecto 🔥")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/myProjects/{user_id}")
-def get_my_projects(user_id: int, db: Session = Depends(get_db)):
-    try:
-        proyectos = proyecto_service.obtener_proyectos_para_ong(db, user_id)
-        return {"success": True, "projects": proyectos}
-    except Exception as e:
+        #traceback.print_exc()   # muestra el stack completo en los logs
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/{project_id}")
