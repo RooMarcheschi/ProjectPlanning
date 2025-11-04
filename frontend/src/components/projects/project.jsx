@@ -7,33 +7,9 @@ import { Link, useParams } from "react-router-dom";
 
 const Project = () => {
     const { id: projectId } = useParams();
+    const token = localStorage.getItem("token");
     const [project, setProject] = useState();
-    const [etapas, setEtapas] = useState([
-        {
-            "id": 1,
-            "estado": "publicada",
-            "name": "etapa1",
-            "descripcion": "desc1"
-        },
-        {
-            "id": 2,
-            "estado": "ejecutandose",
-            "name": "etapa2",
-            "descripcion": "desc2"
-        },
-        {
-            "id": 3,
-            "estado": "cubierta",
-            "name": "etapa3",
-            "descripcion": "desc3"
-        },
-        {
-            "id": 4,
-            "estado": "terminada",
-            "name": "etapa3",
-            "descripcion": "desc4"
-        },
-    ]);
+    const [etapas, setEtapas] = useState([]);
 
     useEffect(() => {
         getProject();
@@ -45,7 +21,7 @@ const Project = () => {
             const response = await fetch(`http://localhost:8000/proyectos/${projectId}`, {
                 headers: {
                     "Content-Type": "application/json",
-                    'Authorization': `Bearer ${localStorage.getItem("token")}` 
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
                 }
             });
             const data = await response.json()
@@ -71,19 +47,28 @@ const Project = () => {
 
     const getEtapas = async () => {
         try {
-            const token = localStorage.getItem("token");
             const response = await fetch(`http://localhost:8000/etapas/projecto/${projectId}`, {
                 headers: {
                     "Content-Type": "application/json",
-                    'Authorization': `Bearer ${localStorage.getItem("token")}` 
+                    'Authorization': `Bearer ${token}`
                 }
             });
             const data = await response.json();
-            console.log(data);
-            // Se tienen que conseguir desde el backend del cloud
-            if (data.success) { }
+            if (data.success) {
+                console.log(data.etapas);
+                setEtapas(data.etapas);
+            }
+            else {
+                toast.error("Error al conseguir las etapas", {
+                    "position": "bottom-right",
+                    "autoClose": 3000
+                });
+            }
         } catch (error) {
-            console.log(error);
+            toast.error("Error al conseguir las etapas", {
+                "position": "bottom-right",
+                "autoClose": 3000
+            });
         }
     }
 
@@ -98,10 +83,10 @@ const Project = () => {
                 </div>
                 <CircularProgress percentage={60} />
             </div>
-            <LinkButton href={"/myProjects"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"}/>
+            <LinkButton href={"/myProjects"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"} />
             <h1 className="text-2xl font-bold text-gray-800 m-2"> Información de las etapas:</h1>
             {etapas.map((etapa) => (
-                <EtapaInfo etapa={etapa} key={etapa.id}/>
+                <EtapaInfo etapa={etapa} key={etapa.id} />
             ))}
         </div>
     )

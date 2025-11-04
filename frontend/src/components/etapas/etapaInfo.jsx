@@ -30,7 +30,7 @@ const EtapaInfo = ({ etapa }) => {
     return (
         <div className={`m-2 ${backgroundColor} w-full p-6 ${properties} cursor-pointer rounded-2xl`} onClick={() => deployEtapa()}>
             <div className="flex flex-row justify-between">
-                <h1 className="text-2xl font-bold text-gray-800"> {etapa.name} </h1>
+                <h1 className="text-2xl font-bold text-gray-800"> {etapa.titulo} </h1>
                 {!deploy && (
                     <button> &#9660;</button>
                 )}

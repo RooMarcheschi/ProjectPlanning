@@ -57,7 +57,7 @@ def get_etapas_from_project(project_id: int, db: Session = Depends(get_db), toke
         etapas = resp.json()
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=503, detail=f"Error consiguiendo las etapas del cloud: {e}")
-    return etapas
+    return {"success": True, "etapas": etapas}
 
 
 # @router.get("/project/{project_id}")
