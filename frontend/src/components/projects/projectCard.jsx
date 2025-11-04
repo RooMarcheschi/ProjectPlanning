@@ -12,7 +12,8 @@ const ProjectCard = ({ project }) => {
     }
 
     return (
-        <div className={`flex flex-col justify-center items-center border-2 w-72 h-72 mx-auto p-6 rounded-2xl shadow-2xl space-y-4 transition-all ${backgroundColor}`}>
+        <div className={`flex flex-col justify-center items-center border w-72 h-80 mx-auto p-6 rounded-2xl shadow-2xl space-y-4 transition-all ${backgroundColor}
+            hover:scale-105 transition`}>
             <h2 className="text-center font-semibold text-2xl">{project.titulo}</h2>
             <p className="text-base text-gray-600 text-center">
                 {project.descripcion}
@@ -26,7 +27,7 @@ const ProjectCard = ({ project }) => {
             </p>
 
             <a href={`project/${project.id}`}>
-                <BlueButton text={"Info"} active={true}/>
+                <BlueButton text={"Info"}/>
             </a>
 
             <p className="text-sm text-gray-500">

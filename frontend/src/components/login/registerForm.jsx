@@ -173,7 +173,6 @@ function RegisterForm() {
                         text={"Registrarse"}
                         classAttr={"mt-6 w-full"}
                         type={"submit"}
-                        active={true}
                     />
 
                     <div className="flex justify-end mt-4">

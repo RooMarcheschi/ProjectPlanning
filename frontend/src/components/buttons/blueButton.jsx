@@ -1,4 +1,4 @@
-const BlueButton = ({ text, type = null, classAttr = null, onClickFunction = null, active = false }) => {
+const BlueButton = ({ text, type = null, classAttr = null, onClickFunction = null, active = true }) => {
     const extra = classAttr || "";
     const activeClasses = active ? "bg-blue-600 text-white" : "";
 

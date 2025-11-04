@@ -99,7 +99,6 @@ function LoginForm() {
                     text={"Iniciar sesión"}
                     classAttr={"mt-6 w-full"}
                     type={"submit"}
-                    active={true}
                 />
 
                 <div className="flex justify-between mt-4">

@@ -123,7 +123,7 @@ function Form() {
                 }, 2000);
             } else {
                 const data = await response.json();
-                toast.error(`Error al enviar el proyecto: ${data.detail.message}`, {
+                toast.error(`Error al enviar el proyecto: ${data.detail}`, {
                     position: "bottom-right",
                     autoClose: 4000
                 })
@@ -239,7 +239,6 @@ function Form() {
                     <BlueButton
                         text={"Enviar proyecto"}
                         type={"submit"}
-                        active={true}
                     />
                 </div>
             }

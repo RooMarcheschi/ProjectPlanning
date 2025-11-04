@@ -9,7 +9,7 @@ const AllEtapas = ({etapas}) => {
             </h1>
 
             {etapas.map(etapa => (
-                <Etapa etapa={etapa} key={etapa.id} />
+                <Etapa etapa={etapa} key={etapa.id}/>
             ))}
         </div>
     )
