@@ -37,11 +37,17 @@ const Project = () => {
 
     useEffect(() => {
         getProject();
+        getEtapas();
     }, [])
 
     const getProject = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/proyectos/${projectId}`);
+            const response = await fetch(`http://localhost:8000/proyectos/${projectId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${localStorage.getItem("token")}` 
+                }
+            });
             const data = await response.json()
 
             if (data.success) {
@@ -65,8 +71,15 @@ const Project = () => {
 
     const getEtapas = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/etapas/project/${projectId}`);
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:8000/etapas/projecto/${projectId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${localStorage.getItem("token")}` 
+                }
+            });
             const data = await response.json();
+            console.log(data);
             // Se tienen que conseguir desde el backend del cloud
             if (data.success) { }
         } catch (error) {
