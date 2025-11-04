@@ -1,14 +1,11 @@
-from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer
 from core.security import decode_token
 from config.database import get_db
-from services import compromiso_service
-from models.compromiso import Compromiso, EstadoCompromiso
-from models.etapa import Etapa
 from dependencies import get_bonita_client
 from services import proyecto_service
+from pydantic import BaseModel
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -17,14 +14,19 @@ router = APIRouter(
     tags=["Compromisos"]
 )
 
-@router.get("/")
-def get_all_compromisos(name: str, db: Session = Depends(get_db)):
-    return compromiso_service.obtener_compromisos(db=db)
+# @router.get("/")
+# def get_all_compromisos(name: str, db: Session = Depends(get_db)):
+#     return compromiso_service.obtener_compromisos(db=db)
 
+
+
+class CompromisoPayload(BaseModel):
+    etapa_id: int
+    proyecto_id: int
 @router.post("/asumir")
-def asumir_compromiso(payload: dict, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    etapa_id: int = payload["etapa_id"]
-    proyecto_id: int = payload["proyecto_id"]
+def asumir_compromiso(payload: CompromisoPayload, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    etapa_id: int = payload.etapa_id
+    proyecto_id: int = payload.proyecto_id
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -53,8 +55,13 @@ def asumir_compromiso(payload: dict, db: Session = Depends(get_db), token: str =
         task = activity[0]["id"]
         while activity[0]["state"] != "ready":
             activity = bonita.search_activity_by_case(case_id=case["id"])
-        bonita.assign_task(task_id=task, user_id=1)
+        bonita.assign_task(task_id=task, user_id=1) # Asignar la tarea al usuario ni siquiera es walter.bates ese como arreglamos?
         res = bonita.complete_activity(task_id=task)
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error communicating with Bonita: " + str(e))
     return {"success": True,"message": "Compromiso generado correctamente"}
+
+#Terminar compromisos?
+
+
+#Get All my compromisos?

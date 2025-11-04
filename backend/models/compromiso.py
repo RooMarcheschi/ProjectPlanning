@@ -7,8 +7,8 @@ class EstadoCompromiso(enum.Enum):
     libre = "libre"
     comprometida = "compremetida"
 
-class Compromiso(Base):
-    __tablename__ = "compromisos"
+class Compromiso():
+    __abstract__ = True
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     id_etapa = Column(Integer, ForeignKey("etapas.id"), unique=True, nullable=False)

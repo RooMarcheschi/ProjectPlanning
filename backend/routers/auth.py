@@ -28,7 +28,7 @@ def login(
     return {"access_token": token, "token_type": "bearer", "id": user.id, "name": user.username}
 
 
-@router.get("/me")
-def read_users_me(token: str = Depends(oauth2_scheme)):
-    username = decode_token(token)
-    return {"username": username}
+# @router.get("/me")
+# def read_users_me(token: str = Depends(oauth2_scheme)):
+#     username = decode_token(token)
+#     return {"username": username}

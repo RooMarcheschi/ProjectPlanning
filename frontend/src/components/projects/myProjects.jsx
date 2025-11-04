@@ -18,7 +18,9 @@ const MyProjects = () => {
         const response = await fetch(`http://localhost:8000/proyectos/myProjects/${id}`,
             {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem("token")}` 
+                }
             }
         );
         const data = await response.json();

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 import json
-from bonita_client import BonitaClient
 from sqlalchemy.orm import Session
-from models.compromiso import Compromiso, EstadoCompromiso
-from services import compromiso_service, proyecto_service, etapa_service
+from services import proyecto_service
 from models.proyecto import Proyecto, EstadoProyecto
 from models.etapa import Etapa, EstadoEtapa
+from fastapi.security import OAuth2PasswordBearer
+from core.security import decode_token
 from datetime import date
 from config.database import get_db
 from dependencies import get_bonita_client
@@ -13,10 +13,17 @@ import time
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+# Mejorar
 # Crear un proyecto
 @router.post("/crearProyecto")
-def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
+def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db),token: str = Depends(oauth2_scheme)):
+    # Obtener el usuario a partir del token
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
     ong_Name = proyecto["ongName"] #vendria a ser el username ahora
     project_name = proyecto["projectName"]
     project_desc = proyecto["projectDesc"]
@@ -141,7 +148,7 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
                 "estado": getattr(etapa.estado, "name", str(etapa.estado)),
             }
             etapas.append(etapa_json)
-            nueva_etapa = etapa_service.crear_etapa(db, etapa)# Hay que borrarla en el futruo esta linea
+            #nueva_etapa = etapa_service.crear_etapa(db, etapa)# Hay que borrarla en el futruo esta linea
             # Ya que solo tendrian que estar en la nube
         res = bonita.set_case_variable(
         case_id=result["caseId"],
@@ -155,28 +162,30 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
             while not activity2:
                 activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
-                time.sleep(1)
+                time.sleep(0.5)# Estaba en 1
             while activity2[0]["state"] != "ready" or id_ant == activity2[0]["id"]:
                 activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
                 print("Activity state:", activity2[0]["state"])
                 print("Activity id:", activity2[0]["id"])
                 print("Previous id:", id_ant)
-                time.sleep(1)
+                time.sleep(0.5)
             bonita.assign_task(task_id=activity2[0]["id"], user_id=2)
             res = bonita.complete_activity(task_id=activity2[0]["id"])
             id_ant = activity2[0]["id"]
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
-        import traceback
+        #import traceback
         #traceback.print_exc()   # muestra el stack completo en los logs
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{project_id}")
-def get_project(project_id: int, db: Session = Depends(get_db)):
+def get_project(project_id: int, db: Session = Depends(get_db),token: str = Depends(oauth2_scheme)):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
     try:
         proyecto = proyecto_service.obtener_proyecto_por_id(db, project_id)
-        print("Se encontro el proyeco")
         if not proyecto:
             raise HTTPException(status_code=404, detail="Project not found")
         return {"success": True, "project": proyecto}
@@ -185,7 +194,10 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/myProjects/{user_id}")
-def get_my_projects(user_id: int, db: Session = Depends(get_db)):
+def get_my_projects(user_id: int, db: Session = Depends(get_db),token: str = Depends(oauth2_scheme)):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
     try:
         proyectos = proyecto_service.obtener_proyectos_para_ong(db, user_id)
         return {"success": True, "projects": proyectos}
