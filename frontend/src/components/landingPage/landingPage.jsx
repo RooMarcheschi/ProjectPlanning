@@ -1,7 +1,7 @@
 import AllEtapas from "../etapas/allEtapas";
 import Rectangle from "../landingPage/rectangle";
 import { useState, useEffect } from "react";
-import { useEtapas } from "../../contexts/EtapasContext";
+import { useEtapas } from "../../contexts/etapasContext";
 
 const LandingPage = () => {
     const ongName = localStorage.getItem("name");

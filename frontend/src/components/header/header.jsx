@@ -4,7 +4,7 @@ import notification from '../../assets/iconnotifications.png';
 import projectLogo from '../../assets/LogoProjectPlanning.png';
 import ConfigMenu from "./configMenu";
 import NotificationMenu from "./notificationMenu";
-import { useEtapas } from "../../contexts/EtapasContext";
+import { useEtapas } from "../../contexts/etapasContext";
 
 const Header = () => {
     const [openMenu, setOpenMenu] = useState(false);

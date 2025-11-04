@@ -1,7 +1,7 @@
 import './css/app.css'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ChangePasswordForm from './components/login/changePasswordForm';
-import { EtapasProvider } from './contexts/EtapasContext';
+import { EtapasProvider } from './contexts/etapasContext';
 import Form from './components/projectForm/form'
 import Header from './components/header/header'
 import LoginForm from './components/login/loginForm';
