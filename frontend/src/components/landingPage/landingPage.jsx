@@ -14,7 +14,15 @@ const LandingPage = () => {
 
     const getEtapas = async () => {
         try {
-            const res = await fetch(`http://localhost:8000/etapas?name=${encodeURIComponent(ongName)}`);
+            //const res = await fetch(`http://localhost:8000/etapas?name=${encodeURIComponent(ongName)}`);
+            const res = await fetch("https://projectplanning-cloud.onrender.com/etapas/excluir-por-proyectos", {
+                method: "POST",
+                headers: { "Content-Type": "application/json",
+                            "Authorization": `Bearer ${localStorage.getItem("token")}`
+                 },
+                body: JSON.stringify([]),
+            });
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             const data = await res.json();
             setEtapas(data);
             setHasEtapas(data.length > 0);

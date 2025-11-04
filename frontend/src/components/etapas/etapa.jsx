@@ -10,10 +10,8 @@ const Etapa = ({ etapa }) => {
 
     const generarCompromiso = async () => {
         const bodyPost = {
-            // etapa_id: etapa.id,
-            etapa_id: 5,
-            // proyecto_id: etapa.id_proyecto
-            proyecto_id: 1
+            etapa_id: etapa.id,
+            proyecto_id: etapa.id_proyecto
         }
         try {
             const response = await fetch("http://localhost:8000/compromisos/asumir", {
