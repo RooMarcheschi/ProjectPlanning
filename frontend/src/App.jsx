@@ -1,19 +1,21 @@
 import './css/app.css'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ChangePasswordForm from './components/login/changePasswordForm';
+import { EtapasProvider } from './contexts/etapasContext';
 import Form from './components/projectForm/form'
 import Header from './components/header/header'
 import LoginForm from './components/login/loginForm';
 import LandingPage from './components/landingPage/landingPage';
 import MyProjects from './components/projects/myProjects';
+import Project from './components/projects/project';
 import ProtectedRoute from './components/login/protectedRoute';
 import PublicRoute from './components/login/publicRoute';
 import RegisterForm from './components/login/registerForm';
 import { ToastContainer } from "react-toastify";
 
-function App() {
+const App = () => {
   return (
-    <>
+    <EtapasProvider>
       <Header />
       <ToastContainer />
       <Router>
@@ -39,11 +41,13 @@ function App() {
           } />
           <Route path='/myProjects' element={
             <ProtectedRoute children={<MyProjects />} />
-          }
-          />
+          } />
+          <Route path='/project/:id' element={
+            <ProtectedRoute children={<Project />} />
+          } />
         </Routes>
       </Router>
-    </>
+    </EtapasProvider>
   )
 }
 

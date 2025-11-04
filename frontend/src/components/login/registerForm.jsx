@@ -1,4 +1,5 @@
 import BlueButton from "../buttons/blueButton";
+import LinkButton from "../buttons/linkButton";
 import { toast } from "react-toastify";
 
 function RegisterForm() {
@@ -29,7 +30,7 @@ function RegisterForm() {
                 autoClose: 4000,
             });
             return;
-        }       
+        }
 
         if (!password || typeof password !== "string" || password.trim() == "" || !passwordRegex.test(password)) {
             toast.error("Contraseña inválida.", {
@@ -67,12 +68,45 @@ function RegisterForm() {
             const data = await response.json();
 
             if (data.success) {
-                toast.success("Usuario registrado exitosamente!",
+                toast.success("Usuario registrado exitosamente! Iniciando sesión...",
                     {
                         position: "bottom-right",
-                        autoClose: 4000,
+                        autoClose: 3000,
                     }
                 )
+                try {
+                    const response = await fetch("http://localhost:8000/auth/login",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                            },
+                            body: new URLSearchParams({
+                                username: email,
+                                password,
+                            }),
+                        });
+                    if (response.ok) {
+                        const responseToken = await response.json()
+                        localStorage.setItem("token", responseToken.access_token);
+                        localStorage.setItem("id", responseToken.id);
+                        localStorage.setItem("name", responseToken.name)
+                        setTimeout(() => {
+                            window.location.href = "/";
+                        }, 1000);
+                    } else {
+                        toast.error("Usuario o contraseña incorrectos.", {
+                            position: "bottom-right",
+                            autoClose: 4000,
+                        });
+                    }
+                }
+                catch (error) {
+                    toast.error(`Usuario o contraseña incorrectos: ${error}`, {
+                        position: "bottom-right",
+                        autoClose: 4000,
+                    });
+                }
             } else {
                 toast.error(`Error al registrar el usuario: ${data.message}`, {
                     position: "bottom-right",
@@ -142,7 +176,7 @@ function RegisterForm() {
                     />
 
                     <div className="flex justify-end mt-4">
-                        <a href="/login" className="text-blue-600 hover:underline transition-all duration-200 hover:text-lg">¿Ya tenés una cuenta? Iniciá sesión</a>
+                        <LinkButton href="/login" text={"¿Ya tenés una cuenta? Iniciá sesión"} />
                     </div>
                 </div>
             </form>

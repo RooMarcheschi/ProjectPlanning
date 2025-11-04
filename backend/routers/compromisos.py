@@ -22,8 +22,12 @@ def get_all_compromisos(name: str, db: Session = Depends(get_db)):
     return compromiso_service.obtener_compromisos(db=db)
 
 @router.post("/asumir")
-def asumir_compromiso(etapa_id: int, proyecto_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+def asumir_compromiso(payload: dict, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    etapa_id: int = payload["etapa_id"]
+    proyecto_id: int = payload["proyecto_id"]
     username = decode_token(token)
+    # if not username:
+    #     raise
     #compromiso = compromiso_service.asumir_compromiso(db=db, etapa_id=etapa_id, contribuyente_id=contribuyente_id)
     bonita = get_bonita_client()
     proyecto = proyecto_service.obtener_proyecto_por_id(db, proyecto_id)
@@ -50,4 +54,4 @@ def asumir_compromiso(etapa_id: int, proyecto_id: int, db: Session = Depends(get
         activity = bonita.search_activity_by_case(case_id=case["id"])
     bonita.assign_task(task_id=task, user_id=1)
     res = bonita.complete_activity(task_id=task)
-    return {"message": "Compromiso generado correctamente"}
+    return {"success": True,"message": "Compromiso generado correctamente"}

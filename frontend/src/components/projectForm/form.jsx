@@ -1,5 +1,6 @@
 import BlueButton from "../buttons/blueButton";
 import GreenButton from "../buttons/greenButton";
+import LinkButton from "../buttons/linkButton";
 import Stage from "./stageForm";
 import { toast } from "react-toastify";
 import { useState } from "react";
@@ -111,15 +112,18 @@ function Form() {
                     body: JSON.stringify(bodyJSON)
                 }
             );
-            
+
             if (response.ok) {
                 toast.success("Proyecto enviado correctamente! ", {
                     position: "bottom-right",
-                    autoClose: 4000,
+                    autoClose: 2000,
                 });
+                setTimeout(() => {
+                    window.location.href = "/myProjects";
+                }, 2000);
             } else {
                 const data = await response.json();
-                toast.error(`Error al enviar el proyecto: ${data.detail.message}`, {
+                toast.error(`Error al enviar el proyecto: ${data.detail}`, {
                     position: "bottom-right",
                     autoClose: 4000
                 })
@@ -130,11 +134,6 @@ function Form() {
                 autoClose: 4000
             })
         }
-
-        // setTimeout(() => {
-        //     window.scrollTo({ top: 0, behavior: "smooth" });
-        //     setTimeout(() => window.location.reload(), 800);
-        // }, 4000);
     }
 
     return (
@@ -191,8 +190,10 @@ function Form() {
                 />
             </div>
 
+            <LinkButton href="/" text={"Volver al inicio"} />
+
             {confirmedStages &&
-                <div className="flex flex-col mt-6 items-center w-full">
+                <div className="flex flex-col items-center w-full">
                     <span className="text-center font-semibold text-gray-700">Etapa {currentStage + 1} de {amountStages}</span>
 
                     <div className="flex flex-row justify-center items-center w-full max-w-lg">
