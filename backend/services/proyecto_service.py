@@ -27,6 +27,9 @@ def existe_proyecto_para_ong(db: Session, proyecto_titulo: str, u_id: int):
 def obtener_proyectos_para_ong(db: Session, u_id: int):
     return db.query(Proyecto).filter(Proyecto.user_id == u_id).order_by(Proyecto.id.desc()).all()
 
+def obtener_projectos_id_para_ong(db: Session, u_id: int):
+    results = db.query(Proyecto.id).filter(Proyecto.user_id == u_id).order_by(Proyecto.id.desc()).all()
+    return [r[0] for r in results]
 def eliminar_proyecto(db: Session, proyecto_id: int):
     proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
     if proyecto:
