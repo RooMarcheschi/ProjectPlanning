@@ -3,6 +3,7 @@ from models.proyecto import Proyecto  # Importá todos los modelos para que se r
 from models.etapa import Etapa
 from models.user import User
 from models.ong import Ong
+from models.observacion import Observacion
 #from models.compromiso import Compromiso
 from seeds import main as seed_main
 

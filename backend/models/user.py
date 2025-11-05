@@ -13,6 +13,8 @@ class User(Base):
     puede_observar = Column(Boolean, default=False)
 
     proyectos = relationship("Proyecto", back_populates="user", cascade="all, delete-orphan")
+    observaciones = relationship("Observacion", back_populates="observante")
+
     
 
 def __repr__(self):
