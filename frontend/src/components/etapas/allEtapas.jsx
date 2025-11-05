@@ -1,6 +1,6 @@
 import Etapa from "./etapa";
 
-const AllEtapas = ({etapas}) => {
+const AllEtapas = ({etapas, onEtapaChange }) => {
 
     return (
         <div className="flex flex-col h-full border border-gray-400 rounded-2xl shadow-lg bg-blue-100 p-4 overflow-y-auto overflow-x-hidden">
@@ -9,7 +9,7 @@ const AllEtapas = ({etapas}) => {
             </h1>
 
             {etapas.map(etapa => (
-                <Etapa etapa={etapa} key={etapa.id}/>
+                <Etapa etapa={etapa} key={etapa.id} onEtapaChange={onEtapaChange} />
             ))}
         </div>
     )

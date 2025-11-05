@@ -4,7 +4,7 @@ import GreenButton from "../buttons/greenButton";
 import RedButton from "../buttons/redButton";
 import { toast } from "react-toastify";
 
-const Etapa = ({ etapa }) => {
+const Etapa = ({ etapa, onEtapaChange }) => {
     const [showButtonsRow, setShowButtonsRow] = useState(false);
     const token = localStorage.getItem("token");
 
@@ -29,6 +29,9 @@ const Etapa = ({ etapa }) => {
                     "position": "bottom-right",
                     "autoClose": "3000",
                 })
+                if (onEtapaChange) {
+                    onEtapaChange();
+                }
             } else {
                 toast.error("Error al generar el compromiso", {
                     "position": "bottom-right",

@@ -5,7 +5,7 @@ import Stage from "./stageForm";
 import { toast } from "react-toastify";
 import { useState } from "react";
 
-function Form() {
+const Form = () => {
     const [amountStages, setAmountStages] = useState(1);
     const [confirmedStages, setConfirmedStages] = useState(false);
     const [currentStage, setCurrentStage] = useState(0);
@@ -43,7 +43,11 @@ function Form() {
 
     const submitProject = async (e) => {
         e.preventDefault();
-
+        const toastId = toast.info("Enviando proyecto...", {
+            position: "bottom-right",
+            autoClose: false,
+            isLoading: true
+        });
         const formData = new FormData(e.target);
         const ongName = localStorage.getItem("name");
         const projectName = formData.get('projectName');
@@ -51,26 +55,32 @@ function Form() {
         const stagesAmount = Number(formData.get('stagesAmount'));
 
         if (!projectName || typeof projectName !== 'string' || projectName.trim() === '') {
-            toast.error('El nombre del proyecto es inválido.', {
-                position: "bottom-right",
+            toast.update(toastId, {
+                render: 'El nombre del proyecto es inválido.',
+                type: "error",
                 autoClose: 4000,
-            });
+                isLoading: false
+            })
             return;
         }
 
         if (!stagesAmount || typeof stagesAmount !== 'number') {
-            toast.error('Error con la cantidad de etapas.', {
-                position: "bottom-right",
+            toast.update(toastId, {
+                render: 'Error con la cantidad de etapas.',
+                type: "error",
                 autoClose: 4000,
-            });
+                isLoading: false
+            })
             return;
         }
 
         if (!projectDesc || typeof projectDesc !== 'string' || projectDesc.trim() === '') {
-            toast.error('La descripción del proyecto es inválida.', {
-                position: "bottom-right",
+            toast.update(toastId, {
+                render: 'La descripción del proyecto es inválida.',
+                type: "error",
                 autoClose: 4000,
-            });
+                isLoading: false
+            })
             return;
         }
 
@@ -79,10 +89,12 @@ function Form() {
             const stageDesc = formData.get(`stageDesc${i + 1}`);
 
             if (!stageName || !stageDesc || typeof stageName !== 'string' || typeof stageDesc !== 'string' || stageName.trim() === '' || stageDesc.trim() === '') {
-                toast.error(`Error con la etapa número ${i}`, {
-                    position: "bottom-right",
+                toast.update(toastId, {
+                    render: `Error con la etapa número ${i}`,
+                    type: "error",
                     autoClose: 4000,
-                });
+                    isLoading: false
+                })
                 return;
             }
         }
@@ -115,24 +127,30 @@ function Form() {
             );
 
             if (response.ok) {
-                toast.success("Proyecto enviado correctamente! ", {
-                    position: "bottom-right",
+                toast.update(toastId, {
+                    render: "Proyecto enviado correctamente! ",
+                    type: "success",
                     autoClose: 2000,
-                });
+                    isLoading: false
+                })
                 setTimeout(() => {
                     window.location.href = "/myProjects";
                 }, 2000);
             } else {
                 const data = await response.json();
-                toast.error(`Error al enviar el proyecto: ${data.detail}`, {
-                    position: "bottom-right",
-                    autoClose: 4000
+                toast.update(toastId, {
+                    render: `Error al enviar el proyecto. ELSE: ${data.detail.message}`,
+                    type: "error",
+                    autoClose: 4000,
+                    isLoading: false
                 })
             }
         } catch (err) {
-            toast.error(`Error al enviar el proyecto: ${err}`, {
-                position: "bottom-right",
-                autoClose: 4000
+            toast.update(toastId, {
+                render: "Error al enviar el proyecto. CATCH",
+                type: "error",
+                autoClose: 4000,
+                isLoading: false
             })
         }
     }
