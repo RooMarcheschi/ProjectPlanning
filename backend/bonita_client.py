@@ -165,24 +165,37 @@ class BonitaClient:
         # Devuelve el objeto de la variable (ej: {"name": "...", "value": "...", "type": ...})
         return resp.json()
 
-    def get_variable_from_task(self, task_id: str, variable_name: str):
-        """
-        Obtiene una variable de un 'case' usando solo el 'task_id'.
-        Esto realiza 2 llamadas API:
-        1. GET /userTask/{task_id} (para obtener el 'caseId')
-        2. GET /caseVariable/{caseId}/{variable_name} (para obtener la variable)
-        """
-        # 1. Obtener detalles de la tarea para encontrar el caseId
-        task_url = f"{self.base_url}/bonita/API/bpm/userTask/{task_id}"
-        task_resp = self.session.get(task_url)
-        if task_resp.status_code != 200:
-            raise Exception(f"Error obteniendo tarea {task_id}: {task_resp.status_code} {task_resp.text}")
+    # def get_variable_from_task(self, task_id: str, variable_name: str):
+    #     """
+    #     Obtiene una variable de un 'case' usando solo el 'task_id'.
+    #     Esto realiza 2 llamadas API:
+    #     1. GET /userTask/{task_id} (para obtener el 'caseId')
+    #     2. GET /caseVariable/{caseId}/{variable_name} (para obtener la variable)
+    #     """
+    #     # 1. Obtener detalles de la tarea para encontrar el caseId
+    #     task_url = f"{self.base_url}/bonita/API/bpm/userTask/{task_id}"
+    #     task_resp = self.session.get(task_url)
+    #     if task_resp.status_code != 200:
+    #         raise Exception(f"Error obteniendo tarea {task_id}: {task_resp.status_code} {task_resp.text}")
         
-        task_data = task_resp.json()
-        case_id = task_data.get("caseId")
+    #     task_data = task_resp.json()
+    #     case_id = task_data.get("caseId")
         
-        if not case_id:
-            raise Exception(f"No se pudo encontrar 'caseId' en la respuesta de la tarea {task_id}")
+    #     if not case_id:
+    #         raise Exception(f"No se pudo encontrar 'caseId' en la respuesta de la tarea {task_id}")
 
-        # 2. Obtener la variable usando el caseId (reutiliza la función anterior)
-        return self.get_variable_by_case(case_id, variable_name)
+    #     # 2. Obtener la variable usando el caseId (reutiliza la función anterior)
+    #     return self.get_variable_by_case(case_id, variable_name)
+    
+    def get_case_by_id(self, case_id: str):
+        """
+        Obtiene la información completa de un case por su ID (GET).
+        """
+        url = f"{self.base_url}/bonita/API/bpm/case/{case_id}"
+        resp = self.session.get(url)
+        
+        if resp.status_code != 200:
+            raise Exception(f"Error obteniendo case {case_id}: {resp.status_code} {resp.text}")
+        
+        # Devuelve el objeto completo del case
+        return resp.json()

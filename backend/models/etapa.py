@@ -13,7 +13,7 @@ class EstadoEtapa(enum.Enum):
 
 
 class Etapa(Base):
-    __tablename__ = "etapas"
+    __abstract__ = True
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     id_proyecto = Column(Integer, ForeignKey("proyectos.id"), nullable=False)

@@ -22,8 +22,8 @@ class Proyecto(Base):
     idBonita = Column(Integer, nullable=True)
     cant_etapas = Column(Integer, nullable=False)
     
-    etapas = relationship(
-        "Etapa", back_populates="proyecto", cascade="all, delete-orphan"
-    )
+    # etapas = relationship(
+    #     "Etapa", back_populates="proyecto", cascade="all, delete-orphan"
+    # )
     user = relationship("User", back_populates="proyectos")
     observaciones = relationship("Observacion", back_populates="proyecto")

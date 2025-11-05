@@ -18,6 +18,14 @@ def seed_data(db: Session):
     db.add(user)
     db.commit()
     db.refresh(user)
+    lalo = User(
+        username="lalo",
+        password=hash_password("123456"),
+        email="lalo@example.com",
+    )
+    db.add(lalo)
+    db.commit()
+    db.refresh(lalo)
 def main():
     Base.metadata.create_all(bind=engine)
 

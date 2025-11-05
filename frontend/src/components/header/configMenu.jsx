@@ -1,6 +1,6 @@
-function ConfigMenu({text, onClickFunction = null}) {
+function ConfigMenu({text, onClickFunction = null, redirect}) {
     return (
-         <a href="#" className="block px-4 py-2 text-gray-800 hover:bg-gray-100" onClick={onClickFunction}>{text}</a>
+         <a href={redirect} className="block px-4 py-2 text-gray-800 hover:bg-gray-100 hover:cursor-pointer" onClick={onClickFunction}>{text}</a>
     )
 }
 

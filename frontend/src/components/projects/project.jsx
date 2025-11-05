@@ -1,26 +1,95 @@
-import BlueButton from "../buttons/blueButton"
+import CircularProgress from "./circularProgress";
+import EtapaInfo from "../etapas/etapaInfo";
+import LinkButton from "../buttons/linkButton"
+import { toast } from "react-toastify";
+import { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
 
-const Project = ({ name, progress, stages, completed }) => {
+const Project = () => {
+    const { id: projectId } = useParams();
+    const token = localStorage.getItem("token");
+    const [project, setProject] = useState();
+    const [etapas, setEtapas] = useState([]);
+
+    useEffect(() => {
+        getProject();
+        getEtapas();
+    }, [])
+
+    const getProject = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/proyectos/${projectId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+            const data = await response.json()
+
+            if (data.success) {
+                setProject(data.project);
+            }
+            else {
+                toast.error("Error al conseguir la información del proyecto", {
+                    position: "bottom-right",
+                    autoClose: 2000,
+                });
+                setTimeout(() => { window.location.href = "/myProjects" }, 2000)
+            }
+        } catch (error) {
+            toast.error("Error al conseguir la información del proyecto", {
+                position: "bottom-right",
+                autoClose: 2000
+            });
+            setTimeout(() => { window.location.href = "/myProjects" }, 2000)
+        }
+    }
+
+    const getEtapas = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/etapas/projecto/${projectId}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                console.log(data.etapas);
+                setEtapas(data.etapas);
+            }
+            else {
+                toast.error("Error al conseguir las etapas", {
+                    "position": "bottom-right",
+                    "autoClose": 3000
+                });
+            }
+        } catch (error) {
+            toast.error("Error al conseguir las etapas", {
+                "position": "bottom-right",
+                "autoClose": 3000
+            });
+        }
+    }
+
     return (
-        <div
-            className={`flex flex-col justify-center items-center border-2 w-60 h-72 mx-auto p-6 rounded-2xl shadow-2xl space-y-4 transition-all 
-            ${completed ? "bg-green-900" : "bg-blue-900"} text-white`}
-        >
-            <div className="relative">
-                <div className="w-24 h-24 rounded-full border-8 border-blue-300 flex items-center justify-center bg-white">
-                    <span className="text-2xl font-bold text-black">{progress}%</span>
+        <div className="m-4 flex flex-col">
+            <div className="flex flex-row justify-between">
+                <div className="flex flex-col">
+                    <h1 className="text-3xl font-bold text-gray-800 m-2"> Proyecto {project?.titulo}</h1>
+                    <h2 className="text-2xl text-gray-700 m-2"> Descripción del proyecto: {project?.descripcion}</h2>
+                    <p className="m-2"> Estado del proyecto: {project?.estado[0].toUpperCase() + project?.estado.slice(1)} </p>
+                    <p className="text-gray-500 text-sm mt-2 ml-2">Cantidad de etapas: {project?.cant_etapas}</p>
                 </div>
+                <CircularProgress percentage={60} />
             </div>
-
-            <p className="text-sm">
-                {completed ? "Proyecto completado" : `${stages} etapas cubiertas`}
-            </p>
-
-            <h2 className="text-center  font-semibold">{name}</h2>
-            
-            <BlueButton text={"Info"} />
+            <LinkButton href={"/myProjects"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"} />
+            <h1 className="text-2xl font-bold text-gray-800 m-2"> Información de las etapas:</h1>
+            {etapas.map((etapa) => (
+                <EtapaInfo etapa={etapa} key={etapa.id} />
+            ))}
         </div>
-    );
-};
+    )
+}
 
 export default Project;
