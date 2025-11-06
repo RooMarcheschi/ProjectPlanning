@@ -139,7 +139,7 @@ const Form = () => {
             } else {
                 const data = await response.json();
                 toast.update(toastId, {
-                    render: `Error al enviar el proyecto. ELSE: ${data.detail.message}`,
+                    render: `Error al enviar el proyecto: ${data.detail.message}`,
                     type: "error",
                     autoClose: 4000,
                     isLoading: false
@@ -147,7 +147,7 @@ const Form = () => {
             }
         } catch (err) {
             toast.update(toastId, {
-                render: "Error al enviar el proyecto. CATCH",
+                render: "Error al enviar el proyecto.",
                 type: "error",
                 autoClose: 4000,
                 isLoading: false

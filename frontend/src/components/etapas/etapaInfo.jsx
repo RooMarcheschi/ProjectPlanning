@@ -23,6 +23,8 @@ const EtapaInfo = ({ etapa }) => {
         }
     }
 
+
+
     return (
         <div className={`m-2 ${backgroundColor} w-full p-6 ${properties} cursor-pointer rounded-2xl transition-all duration-500 ease-in-out overflow-hidden`} onClick={() => deployEtapa()}>
             <div className="flex flex-row justify-between">
