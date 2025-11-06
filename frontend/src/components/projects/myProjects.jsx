@@ -15,7 +15,7 @@ const MyProjects = () => {
     }, [])
 
     const getProjects = async () => {
-        const response = await fetch(`http://localhost:8000/proyectos/myProjects/${id}`,
+        const response = await fetch(`http://localhost:8001/proyectos/myProjects/${id}`,
             {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json',

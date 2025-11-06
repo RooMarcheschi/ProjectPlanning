@@ -14,8 +14,8 @@ const LandingPage = () => {
 
     const getEtapas = async () => {
         try {
-            //const res = await fetch(`http://localhost:8000/etapas?name=${encodeURIComponent(ongName)}`);
-            const res = await fetch("http://localhost:8000/etapas", {
+            //const res = await fetch(`http://localhost:8001/etapas?name=${encodeURIComponent(ongName)}`);
+            const res = await fetch("http://localhost:8001/etapas", {
                 method: "GET",
                 headers: { "Content-Type": "application/json",
                             "Authorization": `Bearer ${localStorage.getItem("token")}`

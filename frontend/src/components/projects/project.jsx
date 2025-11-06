@@ -19,7 +19,7 @@ const Project = () => {
 
     const getProject = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/proyectos/${projectId}`, {
+            const response = await fetch(`http://localhost:8001/proyectos/${projectId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${localStorage.getItem("token")}`
@@ -48,7 +48,7 @@ const Project = () => {
 
     const getEtapas = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/etapas/projecto/${projectId}`, {
+            const response = await fetch(`http://localhost:8001/etapas/projecto/${projectId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`
