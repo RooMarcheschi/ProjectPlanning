@@ -57,6 +57,7 @@ def asumir_compromiso(payload: CompromisoPayload, db: Session = Depends(get_db),
             activity = bonita.search_activity_by_case(case_id=case["id"])
         bonita.assign_task(task_id=task, user_id=1) # Asignar la tarea al usuario ni siquiera es walter.bates ese como arreglamos?
         res = bonita.complete_activity(task_id=task)
+        print(f"RES:{res}")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error communicating with Bonita: " + str(e))
     return {"success": True,"message": "Compromiso generado correctamente"}
