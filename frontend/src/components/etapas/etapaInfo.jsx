@@ -5,12 +5,12 @@ const EtapaInfo = ({ etapa }) => {
     const propertiesClosed = "h-20";
     const [properties, setProperties] = useState(propertiesClosed);
     const backgrounds = {
-        "publicada": "bg-gray-200",
-        "ejecutandose": "bg-blue-200",
-        "cubierta": "bg-yellow-200",
-        "terminada": "bg-green-200"
-    }
-    const backgroundColor = backgrounds[etapa.estado]
+        "publicada": "bg-gray-300",
+        "cubierta": "bg-green-200",
+        "ejecutandose": "bg-orange-200",
+        "terminada": "bg-blue-200"
+    };
+    const backgroundColor = backgrounds[etapa.estado];
 
     const deployEtapa = () => {
         setDeploy(!deploy);
@@ -22,8 +22,6 @@ const EtapaInfo = ({ etapa }) => {
             setProperties(propertiesOpen);
         }
     }
-
-
 
     return (
         <div className={`m-2 ${backgroundColor} w-full p-6 ${properties} cursor-pointer rounded-2xl transition-all duration-500 ease-in-out overflow-hidden`} onClick={() => deployEtapa()}>
@@ -42,8 +40,7 @@ const EtapaInfo = ({ etapa }) => {
                             <p> Cubierta por: nombre ONG</p>
                         )}
                         {etapa.estado == "terminada" && (
-                            // aca van las fechas de ejecucion de la etapa
-                            <p> Se llevó a cabo desde fecha_inicio hasta fecha_fin </p>
+                            <p> Se llevó a cabo desde el {new Date(etapa.fecha_inicio).toLocaleDateString('es-AR')} hasta el {new Date(etapa.fecha_fin).toLocaleDateString('es-AR')} </p>
                         )}
                         <p className="text-gray-600 mb-4 text-sm mt-2">
                             Fecha de creación: {new Date(etapa.fecha_creacion).toLocaleDateString('es-AR')}

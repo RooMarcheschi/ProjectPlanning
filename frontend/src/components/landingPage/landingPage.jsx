@@ -17,9 +17,10 @@ const LandingPage = () => {
             //const res = await fetch(`http://localhost:8000/etapas?name=${encodeURIComponent(ongName)}`);
             const res = await fetch("http://localhost:8000/etapas", {
                 method: "GET",
-                headers: { "Content-Type": "application/json",
-                            "Authorization": `Bearer ${localStorage.getItem("token")}`
-                        }
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                }
             });
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
@@ -44,6 +45,11 @@ const LandingPage = () => {
                     <Rectangle title="Crear proyecto" redirect={"/cargarProyecto"} />
                     <Rectangle title="Mis proyectos" redirect={"/myProjects"} />
                 </div>
+                {/* <div className="w-2/3 grid grid-rows-3 gap-6 p-6">
+                    <Rectangle title="Crear proyecto" redirect="/cargarProyecto" />
+                    <Rectangle title="Mis proyectos" redirect="/myProjects" />
+                    <Rectangle title="Crear observaciones" redirect="/crearObservaciones" icon="pencil" />
+                </div> */}
             </div>
         </div>
     );

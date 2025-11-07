@@ -49,7 +49,7 @@ const Header = () => {
                             <div className="absolute right-0 mt-12 w-48 bg-white border border-gray-300 rounded shadow-lg z-10">
                                 <ConfigMenu text="Mis proyectos" redirect={"/myProjects"} />
                                 <ConfigMenu text="Mis contribuciones" />
-                                <ConfigMenu text="Configuración" />
+                                {/* opcion para Mis observaciones */}
                                 <ConfigMenu text="Cerrar sesión" onClickFunction={() => {
                                     localStorage.clear();
                                     window.location.href = "/login";

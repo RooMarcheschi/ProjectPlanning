@@ -11,6 +11,20 @@ const Project = () => {
     const token = localStorage.getItem("token");
     const [project, setProject] = useState();
     const [etapas, setEtapas] = useState([]);
+    let advance, buttonTransition, strokeColor, buttonText;
+    
+    if (project?.estado == "publicado") {
+        buttonTransition = etapas.length > 0 && etapas.every(e => e.estado === "cubierta");
+        advance = etapas.filter(e => e.estado === "cubierta").length;
+        strokeColor = "#38e875";
+        buttonText = "Ejecutar proyecto";
+    } else if (project?.estado == "terminado") {
+        buttonTransition = etapas.length > 0 && etapas.every(e => e.estado === "terminada");
+        advance = etapas.filter(e => e.estado === "terminada").length;
+        strokeColor = "#1d7df5";
+        buttonText = "Finalizar proyecto";
+    }
+    const percentage = (advance / project?.cant_etapas) * 100;
 
     useEffect(() => {
         getProject();
@@ -73,9 +87,7 @@ const Project = () => {
         }
     }
 
-    const terminadas = etapas.filter(e => e.estado === "terminada").length;
-    const execute = etapas.length > 0 && etapas.every(e => e.estado === "cubierta");
-    const percentage = (terminadas / project?.cant_etapas) * 100;
+
 
     return (
         <div className="m-4 flex flex-col">
@@ -87,9 +99,9 @@ const Project = () => {
                     <p className="text-gray-500 text-sm mt-2 ml-2">Cantidad de etapas: {project?.cant_etapas}</p>
                 </div>
                 <div className="flex flex-col justify-between">
-                    {project && <CircularProgress percentage={percentage} />}
-                    {project && execute && (
-                        <BlueButton text={"Ejecutar proyecto"} classAttr={"mr-8"}/>
+                    {project && <CircularProgress percentage={percentage} strokeColor={strokeColor} />}
+                    {project && buttonTransition && (
+                        <BlueButton text={buttonText} classAttr={"mr-8"} />
                     )}
                 </div>
             </div>
