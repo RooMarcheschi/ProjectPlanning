@@ -33,7 +33,7 @@ const Etapa = ({ etapa, onEtapaChange }) => {
                     onEtapaChange();
                 }
             } else {
-                toast.error("Error al generar el compromiso", {
+                toast.error(`Error al generar el compromiso: ${data.detail}`, {
                     "position": "bottom-right",
                     "autoClose": "3000",
                 })
@@ -50,8 +50,7 @@ const Etapa = ({ etapa, onEtapaChange }) => {
     return (
         <div className="bg-white rounded-xl shadow-md p-4 mb-3 border border-gray-300" id={etapa.id}>
             <h2 className="font-semibold text-lg text-blue-700">{etapa.titulo}</h2>
-            <p className="text-sm text-gray-600">Proyecto: {etapa.project_name}</p>
-            <p className="text-sm text-gray-600">ONG: {etapa.username}</p>
+            <p className="text-sm text-gray-600">¡{etapa.username} necesita tu ayuda en su proyecto {etapa.project_name}! </p>
             <p className="text-gray-700 mt-2">{etapa.descripcion}</p>
 
             {!showButtonsRow ? (
