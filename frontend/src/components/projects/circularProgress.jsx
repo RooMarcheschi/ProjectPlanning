@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const CircularProgress = ({ percentage }) => {
+const CircularProgress = ({ percentage, strokeColor }) => {
   const [progress, setProgress] = useState(0);
 
   const strokeWidth = 10;
@@ -41,7 +41,7 @@ const CircularProgress = ({ percentage }) => {
         />
 
         <circle
-          stroke="#3b82f6"
+          stroke={strokeColor}
           fill="transparent"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
@@ -60,9 +60,8 @@ const CircularProgress = ({ percentage }) => {
           dominantBaseline="middle"
           fontSize={size * 0.25}
           fontWeight="600"
-          fill="#1f2937" // gris oscuro
-          transform="rotate(90, 50, 50)" // compensa la rotación del SVG
-        >
+          fill="#1f2937"
+          transform="rotate(90, 50, 50)"         >
           {Math.round(progress)}%
         </text>
       </svg>

@@ -1,18 +1,15 @@
 import BlueButton from "../buttons/blueButton"
 
 const ProjectCard = ({ project }) => {
-
-    let backgroundColor;
-    if (project.estado === "publicado") {
-        backgroundColor = "bg-gray-200";
-    } else if (project.estado === "ejecutandose") {
-        backgroundColor = "bg-blue-200";
-    } else {
-        backgroundColor = "bg-green-200";
+    const backgrounds = {
+        "publicado": "bg-gray-300",
+        "ejecutandose": "bg-orange-200",
+        "terminado": "bg-blue-200"
     }
+    const backgroundColor = backgrounds[project.estado];
 
     return (
-        <div className={`flex flex-col justify-center items-center border w-72 h-80 mx-auto p-6 rounded-2xl shadow-2xl space-y-4 transition-all ${backgroundColor}
+        <div className={`flex flex-col justify-center items-center w-72 h-80 mx-auto p-6 rounded-2xl shadow-2xl space-y-4 transition-all ${backgroundColor}
             hover:scale-105 transition`}>
             <h2 className="text-center font-semibold text-2xl">{project.titulo}</h2>
             <p className="text-base text-gray-600 text-center">
@@ -27,7 +24,7 @@ const ProjectCard = ({ project }) => {
             </p>
 
             <a href={`project/${project.id}`}>
-                <BlueButton text={"Info"}/>
+                <BlueButton text={"Info"} />
             </a>
 
             <p className="text-sm text-gray-500">

@@ -55,7 +55,7 @@ function RegisterForm() {
         };
 
         try {
-            const response = await fetch("http://localhost:8000/users/register",
+            const response = await fetch("http://localhost:8001/users/register",
                 {
                     method: "POST",
                     headers: {
@@ -75,7 +75,7 @@ function RegisterForm() {
                     }
                 )
                 try {
-                    const response = await fetch("http://localhost:8000/auth/login",
+                    const response = await fetch("http://localhost:8001/auth/login",
                         {
                             method: "POST",
                             headers: {

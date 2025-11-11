@@ -26,3 +26,4 @@ class Proyecto(Base):
     #     "Etapa", back_populates="proyecto", cascade="all, delete-orphan"
     # )
     user = relationship("User", back_populates="proyectos")
+    observaciones = relationship("Observacion", back_populates="proyecto")

@@ -13,6 +13,7 @@ def seed_data(db: Session):
         username="walter.bates",
         password=hash_password("123456"),
         email="walter.bates@example.com",
+        puede_observar=True,
     )
     db.add(user)
     db.commit()

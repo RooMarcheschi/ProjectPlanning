@@ -15,22 +15,61 @@ router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-# Mejorar
-# Crear un proyecto
 @router.post("/crearProyecto")
-def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db),token: str = Depends(oauth2_scheme)):
-    # Obtener el usuario a partir del token
+def crear_proyecto(
+    proyecto: dict = Body(...),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    import time
+
+    def debug(msg, *args):
+        print(f"[DEBUG] {msg}", *args)
+
+    def wait_for_any_activity(bonita, case_id, timeout=10):
+        """Espera a que haya alguna actividad disponible."""
+        debug("Esperando primera actividad...")
+        start = time.time()
+        while time.time() - start < timeout:
+            acts = bonita.search_activity_by_case(case_id=case_id)
+            debug("search_activity_by_case devolvió:", acts)
+            if acts:
+                return acts
+            time.sleep(0.5)
+        raise Exception("Timeout esperando primera actividad del proceso")
+
+    def wait_for_ready_activity(bonita, case_id, previous_id=None, timeout=10):
+        """
+        Espera una actividad ready distinta de previous_id.
+        """
+        debug(f"Esperando actividad READY (anterior id = {previous_id})...")
+        start = time.time()
+        while time.time() - start < timeout:
+            acts = bonita.search_activity_by_case(case_id=case_id)
+            debug("Actividades actuales:", acts)
+
+            if not acts:
+                time.sleep(0.5)
+                continue
+
+            act = acts[0]
+
+            if act.get("state") == "ready" and act.get("id") != previous_id:
+                debug("Actividad lista:", act)
+                return act
+
+            time.sleep(0.5)
+
+        raise Exception("Timeout esperando actividad ready")
+
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
-    ong_Name = proyecto["ongName"] #vendria a ser el username ahora
+
     project_name = proyecto["projectName"]
     project_desc = proyecto["projectDesc"]
     amount_stages = proyecto["stagesAmount"]
     u_id = int(proyecto["userId"])
-
-    # Validaciones
 
     if not project_name or type(project_name) != str or project_name.strip() == "":
         raise HTTPException(
@@ -85,20 +124,20 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db),tok
             )
 
     try:
-        # Conexión con Bonita
         bonita = get_bonita_client()
-        # Consigo el id del proceso
         process_id = bonita.get_process_id_by_name("Proyecto")
-        # Inicio el proceso con las variables
+        debug("Process ID:", process_id)
+
         result = bonita.start_process(process_definition_id=process_id)
-        # Seteo las variables del proceso, por ahora solo etaapasTotales
-        res = bonita.set_case_variable(
+        debug("Resultado start_process:", result)
+
+        bonita.set_case_variable(
             case_id=result["caseId"],
             variable_name="etapasTotales",
             value=amount_stages,
             type_hint="java.lang.Integer",
         )
-        # Subir a la db el proyecto
+
         proy = Proyecto(
             titulo=project_name,
             descripcion=project_desc,
@@ -106,81 +145,65 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db),tok
             fecha_creacion=date.today(),
             estado=EstadoProyecto.publicado,
             idBonita=result["caseId"],
-            cant_etapas=amount_stages
+            cant_etapas=amount_stages,
         )
         nuevo_proyecto = proyecto_service.crear_proyecto(db, proy)
-        # Seteo la variable iddb en bonita
-        res = bonita.set_case_variable(
+
+        bonita.set_case_variable(
             case_id=result["caseId"],
             variable_name="iddb",
             value=nuevo_proyecto.id,
             type_hint="java.lang.Integer",
         )
-        # Avance de las tareas del proceso
-        activity = bonita.search_activity_by_case(case_id= result["caseId"])
-        task1 = activity[0]["id"]
-        bonita.assign_task(task_id=task1, user_id=1) # esta bien ponerlo al id 1
-        res = bonita.complete_activity(task_id=task1)
-        # Subir a la db las etapas
+
+        activities = wait_for_any_activity(bonita, result["caseId"])
+        task1 = activities[0]["id"]
+        debug("Primera actividad:", activities[0])
+
+        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.complete_activity(task_id=task1)
+
         etapas = []
-        for i, stage in enumerate(proyecto["stages"]):
-            name = stage["name"]
-            desc = stage["description"]
-
-            etapa = Etapa(
-                id_proyecto=nuevo_proyecto.id,
-                id_user=u_id,
-                titulo=name,
-                descripcion=desc,
-                fecha_creacion=date.today(),
-                fecha_inicio=date.today(),
-                fecha_fin=date.today(),
-                estado=EstadoEtapa.publicada,
-            )
-
-            # Preparar una representación JSON-friendly de la etapa (sin id de BD aún)
-            etapa_json = {
-                "titulo": etapa.titulo,
-                "descripcion": etapa.descripcion,
-                "fecha_inicio": etapa.fecha_inicio.isoformat() if hasattr(etapa.fecha_inicio, "isoformat") else str(etapa.fecha_inicio),
-                "fecha_fin": etapa.fecha_fin.isoformat() if hasattr(etapa.fecha_fin, "isoformat") else str(etapa.fecha_fin),
-                "id_proyecto": etapa.id_proyecto,
-                "estado": getattr(etapa.estado, "name", str(etapa.estado)),
+        for stage in proyecto["stages"]:
+            etapa_obj = {
+                "titulo": stage["name"],
+                "descripcion": stage["description"],
+                "fecha_inicio": date.today().isoformat(),
+                "fecha_fin": date.today().isoformat(),
+                "id_proyecto": nuevo_proyecto.id,
+                "estado": "publicada",
+                "username":username,
+                "project_name": project_name,
             }
-            etapas.append(etapa_json)
-            #nueva_etapa = etapa_service.crear_etapa(db, etapa)# Hay que borrarla en el futruo esta linea
-            # Ya que solo tendrian que estar en la nube
-        res = bonita.set_case_variable(
-        case_id=result["caseId"],
-        variable_name="etapas",
-        value=json.dumps(etapas),
-        type_hint="java.lang.String",
+            etapas.append(etapa_obj)
+
+        bonita.set_case_variable(
+            case_id=result["caseId"],
+            variable_name="etapas",
+            value=json.dumps(etapas),
+            type_hint="java.lang.String",
         )
-        id_ant = 9999999999999
+
+        last_id = None
         for i in range(3):
-            
-            activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
-            while not activity2:
-                activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
-                time.sleep(0.5)# Estaba en 1
-            while activity2[0]["state"] != "ready" or id_ant == activity2[0]["id"]:
-                activity2 = bonita.search_activity_by_case(case_id= result["caseId"])
-                print("Activity state:", activity2[0]["state"])
-                print("Activity id:", activity2[0]["id"])
-                print("Previous id:", id_ant)
-                time.sleep(0.5)
-            bonita.assign_task(task_id=activity2[0]["id"], user_id=2)
-            res = bonita.complete_activity(task_id=activity2[0]["id"])
-            id_ant = activity2[0]["id"]
+            debug(f"\n--- Ciclo actividad {i+1} ---")
+            act = wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
+
+            bonita.assign_task(task_id=act["id"], user_id=2)
+            bonita.complete_activity(task_id=act["id"])
+            last_id = act["id"]
+
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
-        #import traceback
-        #traceback.print_exc()   # muestra el stack completo en los logs
-        raise HTTPException(status_code=500, detail=str(e))
+        debug("ERROR CAPTURADO:", str(e))
+        raise HTTPException(status_code=500, detail={"message": str(e)})
+
 
 @router.get("/{project_id}")
-def get_project(project_id: int, db: Session = Depends(get_db),token: str = Depends(oauth2_scheme)):
+def get_project(
+    project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -194,7 +217,9 @@ def get_project(project_id: int, db: Session = Depends(get_db),token: str = Depe
 
 
 @router.get("/myProjects/{user_id}")
-def get_my_projects(user_id: int, db: Session = Depends(get_db),token: str = Depends(oauth2_scheme)):
+def get_my_projects(
+    user_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")

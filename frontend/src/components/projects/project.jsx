@@ -1,15 +1,30 @@
+import BlueButton from "../buttons/blueButton";
 import CircularProgress from "./circularProgress";
 import EtapaInfo from "../etapas/etapaInfo";
 import LinkButton from "../buttons/linkButton"
 import { toast } from "react-toastify";
 import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 const Project = () => {
     const { id: projectId } = useParams();
     const token = localStorage.getItem("token");
     const [project, setProject] = useState();
     const [etapas, setEtapas] = useState([]);
+    let advance, buttonTransition, strokeColor, buttonText;
+    
+    if (project?.estado == "publicado") {
+        buttonTransition = etapas.length > 0 && etapas.every(e => e.estado === "cubierta");
+        advance = etapas.filter(e => e.estado === "cubierta").length;
+        strokeColor = "#38e875";
+        buttonText = "Ejecutar proyecto";
+    } else if (project?.estado == "terminado") {
+        buttonTransition = etapas.length > 0 && etapas.every(e => e.estado === "terminada");
+        advance = etapas.filter(e => e.estado === "terminada").length;
+        strokeColor = "#1d7df5";
+        buttonText = "Finalizar proyecto";
+    }
+    const percentage = (advance / project?.cant_etapas) * 100;
 
     useEffect(() => {
         getProject();
@@ -18,7 +33,7 @@ const Project = () => {
 
     const getProject = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/proyectos/${projectId}`, {
+            const response = await fetch(`http://localhost:8001/proyectos/${projectId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${localStorage.getItem("token")}`
@@ -47,7 +62,7 @@ const Project = () => {
 
     const getEtapas = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/etapas/projecto/${projectId}`, {
+            const response = await fetch(`http://localhost:8001/etapas/projecto/${projectId}`, {
                 headers: {
                     "Content-Type": "application/json",
                     'Authorization': `Bearer ${token}`
@@ -72,6 +87,8 @@ const Project = () => {
         }
     }
 
+
+
     return (
         <div className="m-4 flex flex-col">
             <div className="flex flex-row justify-between">
@@ -81,7 +98,12 @@ const Project = () => {
                     <p className="m-2"> Estado del proyecto: {project?.estado[0].toUpperCase() + project?.estado.slice(1)} </p>
                     <p className="text-gray-500 text-sm mt-2 ml-2">Cantidad de etapas: {project?.cant_etapas}</p>
                 </div>
-                <CircularProgress percentage={60} />
+                <div className="flex flex-col justify-between">
+                    {project && <CircularProgress percentage={percentage} strokeColor={strokeColor} />}
+                    {project && buttonTransition && (
+                        <BlueButton text={buttonText} classAttr={"mr-8"} />
+                    )}
+                </div>
             </div>
             <LinkButton href={"/myProjects"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"} />
             <h1 className="text-2xl font-bold text-gray-800 m-2"> Información de las etapas:</h1>
