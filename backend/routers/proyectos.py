@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordBearer
 from core.security import decode_token
 from datetime import date
 from config.database import get_db
-from dependencies import get_bonita_client
+from dependencies import get_bonita_client, debug, wait_for_any_activity, wait_for_ready_activity
 import time
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
@@ -24,7 +24,6 @@ def crear_proyecto(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
-
     project_name = proyecto["projectName"]
     project_desc = proyecto["projectDesc"]
     amount_stages = proyecto["stagesAmount"]
@@ -86,10 +85,10 @@ def crear_proyecto(
         bonita = get_bonita_client()
         process_id = bonita.get_process_id_by_name("Proyecto")
         
-        bonita.debug("Process ID:", process_id)
+        debug("Process ID:", process_id)
 
         result = bonita.start_process(process_definition_id=process_id)
-        bonita.debug("Resultado start_process:", result)
+        debug("Resultado start_process:", result)
 
         bonita.set_case_variable(
             case_id=result["caseId"],
@@ -116,9 +115,9 @@ def crear_proyecto(
             type_hint="java.lang.Integer",
         )
 
-        activities = bonita.wait_for_any_activity(bonita, result["caseId"])
+        activities = wait_for_any_activity(bonita, result["caseId"])
         task1 = activities[0]["id"]
-        bonita.debug("Primera actividad:", activities[0])
+        debug("Primera actividad:", activities[0])
 
         bonita.assign_task(task_id=task1, user_id=1)
         bonita.complete_activity(task_id=task1)
@@ -146,8 +145,8 @@ def crear_proyecto(
 
         last_id = None
         for i in range(2):
-            bonita.debug(f"\n--- Ciclo actividad {i+1} ---")
-            act = bonita.wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
+            debug(f"\n--- Ciclo actividad {i+1} ---")
+            act = wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
 
             bonita.assign_task(task_id=act["id"], user_id=2)
             bonita.complete_activity(task_id=act["id"])
@@ -189,10 +188,11 @@ def get_my_projects(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/ejecutarProyecto/{project_id}")
+@router.post("/ejecutar/{project_id}")
 def ejecutar_proyecto(
     project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
 ):
+
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -204,9 +204,9 @@ def ejecutar_proyecto(
         proyecto_service.actualizar_estado_proyecto(db, project_id, EstadoProyecto.ejecutandose)
         # Ejecuar tarea de bonita
         bonita = get_bonita_client()
-        activities = bonita.wait_for_any_activity(bonita, proyecto.idBonita)
+        activities = wait_for_any_activity(bonita, proyecto.idBonita)
         task1 = activities[0]["id"]
-        bonita.debug("Primera actividad:", activities[0])
+        debug("Primera actividad:", activities[0])
 
         bonita.assign_task(task_id=task1, user_id=1)
         bonita.complete_activity(task_id=task1)
