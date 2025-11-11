@@ -21,47 +21,6 @@ def crear_proyecto(
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
 ):
-    import time
-
-    def debug(msg, *args):
-        print(f"[DEBUG] {msg}", *args)
-
-    def wait_for_any_activity(bonita, case_id, timeout=10):
-        """Espera a que haya alguna actividad disponible."""
-        debug("Esperando primera actividad...")
-        start = time.time()
-        while time.time() - start < timeout:
-            acts = bonita.search_activity_by_case(case_id=case_id)
-            debug("search_activity_by_case devolvió:", acts)
-            if acts:
-                return acts
-            time.sleep(0.5)
-        raise Exception("Timeout esperando primera actividad del proceso")
-
-    def wait_for_ready_activity(bonita, case_id, previous_id=None, timeout=10):
-        """
-        Espera una actividad ready distinta de previous_id.
-        """
-        debug(f"Esperando actividad READY (anterior id = {previous_id})...")
-        start = time.time()
-        while time.time() - start < timeout:
-            acts = bonita.search_activity_by_case(case_id=case_id)
-            debug("Actividades actuales:", acts)
-
-            if not acts:
-                time.sleep(0.5)
-                continue
-
-            act = acts[0]
-
-            if act.get("state") == "ready" and act.get("id") != previous_id:
-                debug("Actividad lista:", act)
-                return act
-
-            time.sleep(0.5)
-
-        raise Exception("Timeout esperando actividad ready")
-
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -126,10 +85,11 @@ def crear_proyecto(
     try:
         bonita = get_bonita_client()
         process_id = bonita.get_process_id_by_name("Proyecto")
-        debug("Process ID:", process_id)
+        
+        bonita.debug("Process ID:", process_id)
 
         result = bonita.start_process(process_definition_id=process_id)
-        debug("Resultado start_process:", result)
+        bonita.debug("Resultado start_process:", result)
 
         bonita.set_case_variable(
             case_id=result["caseId"],
@@ -156,9 +116,9 @@ def crear_proyecto(
             type_hint="java.lang.Integer",
         )
 
-        activities = wait_for_any_activity(bonita, result["caseId"])
+        activities = bonita.wait_for_any_activity(bonita, result["caseId"])
         task1 = activities[0]["id"]
-        debug("Primera actividad:", activities[0])
+        bonita.debug("Primera actividad:", activities[0])
 
         bonita.assign_task(task_id=task1, user_id=1)
         bonita.complete_activity(task_id=task1)
@@ -186,8 +146,8 @@ def crear_proyecto(
 
         last_id = None
         for i in range(2):
-            debug(f"\n--- Ciclo actividad {i+1} ---")
-            act = wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
+            bonita.debug(f"\n--- Ciclo actividad {i+1} ---")
+            act = bonita.wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
 
             bonita.assign_task(task_id=act["id"], user_id=2)
             bonita.complete_activity(task_id=act["id"])
@@ -196,7 +156,7 @@ def crear_proyecto(
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
-        debug("ERROR CAPTURADO:", str(e))
+        bonita.debug("ERROR CAPTURADO:", str(e))
         raise HTTPException(status_code=500, detail={"message": str(e)})
 
 
@@ -226,5 +186,31 @@ def get_my_projects(
     try:
         proyectos = proyecto_service.obtener_proyectos_para_ong(db, user_id)
         return {"success": True, "projects": proyectos}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/ejecutarProyecto/{project_id}")
+def ejecutar_proyecto(
+    project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        proyecto = proyecto_service.obtener_proyecto_por_id(db, project_id)
+        if not proyecto: 
+            raise HTTPException(status_code=404, detail="Project not found")
+        # Cambiar estado de proyecto
+        proyecto_service.actualizar_estado_proyecto(db, project_id, EstadoProyecto.ejecutandose)
+        # Ejecuar tarea de bonita
+        bonita = get_bonita_client()
+        activities = bonita.wait_for_any_activity(bonita, proyecto.idBonita)
+        task1 = activities[0]["id"]
+        bonita.debug("Primera actividad:", activities[0])
+
+        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.complete_activity(task_id=task1)
+
+        return {"success": True, "message": "Project finalized successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

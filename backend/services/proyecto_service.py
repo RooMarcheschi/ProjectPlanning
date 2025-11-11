@@ -24,6 +24,13 @@ def existe_proyecto_para_ong(db: Session, proyecto_titulo: str, u_id: int):
         Proyecto.titulo.ilike(proyecto_titulo)
     ).first() is not None
 
+def actualizar_estado_proyecto(db: Session, proyecto_id: int, nuevo_estado: EstadoProyecto):
+    proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
+    if proyecto:
+        proyecto.estado = nuevo_estado
+        db.commit()
+        db.refresh(proyecto)
+    return proyecto
 def obtener_proyectos_para_ong(db: Session, u_id: int):
     return db.query(Proyecto).filter(Proyecto.user_id == u_id).order_by(Proyecto.id.desc()).all()
 
