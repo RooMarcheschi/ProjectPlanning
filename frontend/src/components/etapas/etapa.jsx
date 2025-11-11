@@ -14,7 +14,7 @@ const Etapa = ({ etapa, onEtapaChange }) => {
             proyecto_id: etapa.id_proyecto
         }
         try {
-            const response = await fetch("http://localhost:8000/compromisos/asumir", {
+            const response = await fetch("http://localhost:8001/compromisos/asumir", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
