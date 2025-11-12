@@ -25,7 +25,7 @@ def login(
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
     token = create_access_token(data={"sub": user.username})
-    return {"access_token": token, "token_type": "bearer", "id": user.id, "name": user.username}
+    return {"access_token": token, "token_type": "bearer", "id": user.id, "name": user.username, "permissions": user.puede_observar}
 
 
 # @router.get("/me")

@@ -12,6 +12,7 @@ import ProtectedRoute from './components/login/protectedRoute';
 import PublicRoute from './components/login/publicRoute';
 import RegisterForm from './components/login/registerForm';
 import { ToastContainer } from "react-toastify";
+import AllProjects from './components/projects/allProjects';
 
 const App = () => {
   return (
@@ -44,6 +45,9 @@ const App = () => {
           } />
           <Route path='/project/:id' element={
             <ProtectedRoute children={<Project />} />
+          } />
+          <Route path='/allProjects' element={
+            <ProtectedRoute children={<AllProjects />} />
           } />
         </Routes>
       </Router>

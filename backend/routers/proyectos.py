@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 import json
 from sqlalchemy.orm import Session
-from services import proyecto_service
+from services import proyecto_service, user_service
 from models.proyecto import Proyecto, EstadoProyecto
 from models.etapa import Etapa, EstadoEtapa
 from fastapi.security import OAuth2PasswordBearer
@@ -199,6 +199,16 @@ def crear_proyecto(
         debug("ERROR CAPTURADO:", str(e))
         raise HTTPException(status_code=500, detail={"message": str(e)})
 
+@router.get("/allProjects")
+def get_projects(user_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        projects = proyecto_service.get_all_projects_except_id(db=db, user_id=user_id)
+        return {"success": True, "projects": projects}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"message": str(e)})
 
 @router.get("/{project_id}")
 def get_project(
@@ -213,7 +223,7 @@ def get_project(
             raise HTTPException(status_code=404, detail="Project not found")
         return {"success": True, "project": proyecto}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail={"message": str(e)})
 
 
 @router.get("/myProjects/{user_id}")
@@ -227,4 +237,4 @@ def get_my_projects(
         proyectos = proyecto_service.obtener_proyectos_para_ong(db, user_id)
         return {"success": True, "projects": proyectos}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail={"message": str(e)})

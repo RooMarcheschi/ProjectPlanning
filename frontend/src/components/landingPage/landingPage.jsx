@@ -7,6 +7,8 @@ const LandingPage = () => {
     const ongName = localStorage.getItem("name");
     const [etapas, setEtapas] = useState([]);
     const { setHasEtapas } = useEtapas();
+    const permissionsString = localStorage.getItem("permissions");
+    const permissions = permissionsString == "true";
 
     useEffect(() => {
         getEtapas();
@@ -41,15 +43,13 @@ const LandingPage = () => {
                     <AllEtapas etapas={etapas} onEtapaChange={getEtapas} />
                 </div>
 
-                <div className="w-2/3 grid grid-rows-2 gap-6 p-6">
+                <div className={`w-2/3 grid grid-rows-${permissions == true ? "3" : "2"} gap-6 p-6`}>
                     <Rectangle title="Crear proyecto" redirect={"/cargarProyecto"} />
                     <Rectangle title="Mis proyectos" redirect={"/myProjects"} />
+                    {permissions == true && (
+                        <Rectangle title="Crear observaciones" redirect="/allProjects" icon="pencil" />
+                    )}
                 </div>
-                {/* <div className="w-2/3 grid grid-rows-3 gap-6 p-6">
-                    <Rectangle title="Crear proyecto" redirect="/cargarProyecto" />
-                    <Rectangle title="Mis proyectos" redirect="/myProjects" />
-                    <Rectangle title="Crear observaciones" redirect="/crearObservaciones" icon="pencil" />
-                </div> */}
             </div>
         </div>
     );

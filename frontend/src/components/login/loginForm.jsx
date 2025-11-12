@@ -47,6 +47,7 @@ function LoginForm() {
                 localStorage.setItem("token", responseToken.access_token);
                 localStorage.setItem("id", responseToken.id);
                 localStorage.setItem("name", responseToken.name)
+                localStorage.setItem("permissions", responseToken.permissions)
                 toast.success("Iniciando sesión...", {
                     position: "bottom-right",
                     autoClose: 1000,
