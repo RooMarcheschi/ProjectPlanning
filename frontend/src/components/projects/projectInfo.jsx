@@ -2,18 +2,21 @@ import { useState } from "react";
 import GreenButton from "../buttons/greenButton";
 import BlueButton from "../buttons/blueButton";
 import RedButton from "../buttons/redButton";
+import { toast } from "react-toastify";
 
 const ProjectInfo = ({ project }) => {
     const [deploy, setDeploy] = useState(false);
     const [buttons, setButtons] = useState(false);
+    const [text, setText] = useState("");
     const propertiesClosed = "h-20";
     const propertiesOpen = "h-auto";
     const [properties, setProperties] = useState(propertiesClosed);
+    const id = localStorage.getItem("id");
+    const token = localStorage.getItem("token");
 
     const backgrounds = {
         "publicado": "bg-gray-300",
         "ejecutandose": "bg-orange-300",
-        "terminado": "bg-blue-300"
     };
     const backgroundColor = backgrounds[project.estado];
 
@@ -27,10 +30,54 @@ const ProjectInfo = ({ project }) => {
         }
     }
 
-    const sendObservation = (e) => {
+    const sendObservation = async (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        // fetch
+
+        if (!text || typeof text != "string" || text.trim() == "") {
+            toast.error("Descripción inválida", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+            return;
+        }
+
+        const bodyJSON = {
+            "proyecto_id": project.id,
+            "observante_id": id,
+            "descripcion": text,
+        }
+        try {
+            const response = await fetch("http://localhost:8001/observaciones/realizar_observacion", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(bodyJSON),
+            })
+
+            const data = await response.json();
+            if (data.success) {
+                toast.success("Observación enviada correctamnte!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
+            }
+            else {
+                toast.error(`Error al enviar la observación: ${data.detail.message}`, {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
+            }
+        } catch (error) {
+            toast.error("Error al enviar la observación", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+        }
         setButtons(false);
+        setText("");
     }
 
     return (
@@ -54,15 +101,15 @@ const ProjectInfo = ({ project }) => {
 
                         <div className="flex items-center justify-end">
                             {buttons && (
-                                <div className="flex flex-col">
-                                    <textarea onClick={(e) => e.stopPropagation()} placeholder="Escribí tus observaciones"
-                                        className="border-2 border-blue-400 h-24 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-600 transition hover:border-blue-400"
+                                <form className="flex flex-col">
+                                    <textarea onClick={(e) => e.stopPropagation()} placeholder="Escribí tus observaciones" id="descriptionObservation" onChange={(e) => setText(e.target.value)} value={text} required
+                                        className="border-2 border-blue-400 h-24 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-600 transition hover:border-blue-500"
                                     ></textarea>
                                     <div className="flex flex-row px-4 py-2 items-center justify-between">
                                         <RedButton text={"Cancelar"} classAttr={"mr-20"} onClickFunction={(e) => { e.stopPropagation(); setButtons(false) }} />
-                                        <GreenButton text={"Enviar observación"}  onClickFunction={(e) => sendObservation(e)}/>
+                                        <GreenButton text={"Enviar observación"} onClickFunction={(e) => sendObservation(e)} />
                                     </div>
-                                </div>
+                                </form>
                             )}
                             {!buttons && (
                                 <BlueButton text={"Escribir observación"} onClickFunction={(e) => {

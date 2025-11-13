@@ -32,3 +32,14 @@ def login(
 # def read_users_me(token: str = Depends(oauth2_scheme)):
 #     username = decode_token(token)
 #     return {"username": username}
+
+@router.post("/validateUser")
+def validate_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        username = decode_token(token)
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        has_permissions = user_service.user_has_permissions(db=db, username=username)
+        return {"success": True, "permissions": has_permissions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"message": str(e)})

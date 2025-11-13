@@ -64,7 +64,7 @@ def get_all_projects_except_id(db: Session, user_id: int):
     results = (
         db.query(Proyecto, User)
         .join(User, Proyecto.user_id == User.id)
-        .filter(Proyecto.user_id != user_id)
+        .filter(Proyecto.user_id != user_id, Proyecto.estado != "terminado")
         .order_by(Proyecto.id.desc())
         .all()
     )

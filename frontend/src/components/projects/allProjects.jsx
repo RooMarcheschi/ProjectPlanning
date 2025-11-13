@@ -4,13 +4,35 @@ import ProjectInfo from "./projectInfo";
 import LinkButton from "../buttons/linkButton";
 
 const AllProjects = () => {
+    const [permissions, setPermissions] = useState(false);
     const [projects, setProjects] = useState([]);
     const token = localStorage.getItem("token");
     const id = localStorage.getItem("id");
 
     useEffect(() => {
-        getProjects();
+        hasPermissions();
     }, []);
+
+    const hasPermissions = async () => {
+        try {
+            const response = await fetch("http://localhost:8001/auth/validateUser", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            if (data.success && data.permissions) {
+                setPermissions(true);
+                getProjects();
+            } else {
+                window.location.href = "/";
+            }
+        } catch (error) {
+            window.location.href = "/";
+        }
+    }
 
     const getProjects = async () => {
         try {
@@ -42,20 +64,23 @@ const AllProjects = () => {
     }
 
     return (
-        <div className="m-4 flex flex-col">
-            <div className="flex flex-row justify-between">
-                <div className="flex flex-col">
-                    <h1 className="text-3xl font-bold text-gray-800 m-2"> Escribir observaciones </h1>
+        <>
+            {permissions && (
+                <div className="m-4 flex flex-col">
+                    <div className="flex flex-row justify-between">
+                        <div className="flex flex-col">
+                            <h1 className="text-3xl font-bold text-gray-800 m-2"> Escribir observaciones </h1>
+                        </div>
+                    </div>
+                    <LinkButton href={"/"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"} />
+                    <h1 className="text-2xl font-bold text-gray-800 m-2"> Proyectos:</h1>
+                    {projects.map((project) => (
+                        <ProjectInfo project={project} key={project.id} />
+                    ))}
                 </div>
-            </div>
-            <LinkButton href={"/"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"} />
-            <h1 className="text-2xl font-bold text-gray-800 m-2"> Proyectos:</h1>
-            {projects.map((project) => (
-                <ProjectInfo project={project} key={project.id} />
-            ))}
-        </div>
+            )}
+        </>
     )
-
 }
 
 export default AllProjects;
