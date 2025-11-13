@@ -87,8 +87,6 @@ const Project = () => {
         }
     }
 
-
-
     return (
         <div className="m-4 flex flex-col">
             <div className="flex flex-row justify-between">

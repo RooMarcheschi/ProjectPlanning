@@ -30,3 +30,7 @@ def eliminar_usuario(db: Session, user_id: int):
         db.delete(usuario)
         db.commit()
     return usuario
+
+def user_has_permissions(db: Session, username: str):
+    user = obtener_usuario_por_username(db, username)
+    return user and bool(user.puede_observar)

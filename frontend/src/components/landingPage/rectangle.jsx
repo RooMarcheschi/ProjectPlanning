@@ -21,6 +21,24 @@ const Rectangle = ({ title, redirect, icon }) => {
             );
         }
 
+        if (icon === "report") {
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-16 w-16 text-blue-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path d="M4 4h16v16H4z" />
+                    <path d="M8 10h8M8 14h5" />
+                </svg>
+            );
+        }
+
         return (
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -48,7 +66,6 @@ const Rectangle = ({ title, redirect, icon }) => {
             <h3 className="text-lg font-semibold mt-2">{title}</h3>
         </a>
     );
-}
+};
 
 export default Rectangle;
-
