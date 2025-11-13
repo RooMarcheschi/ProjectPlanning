@@ -100,6 +100,7 @@ const Project = () => {
                     {project && <CircularProgress percentage={percentage} strokeColor={strokeColor} />}
                     {project && buttonTransition && (
                         <BlueButton text={buttonText} classAttr={"mr-8"} />
+                        //http://localhost:8001/proyectos/ejecutar/{projectId} este es el endpoint para ejecutar el proyecto
                     )}
                 </div>
             </div>
