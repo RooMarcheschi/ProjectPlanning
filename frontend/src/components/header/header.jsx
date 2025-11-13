@@ -49,6 +49,22 @@ const Header = () => {
                             <div className="absolute right-0 mt-12 w-48 bg-white border border-gray-300 rounded shadow-lg z-10">
                                 <ConfigMenu text="Mis proyectos" redirect={"/myProjects"} />
                                 <ConfigMenu text="Mis contribuciones" />
+                                {/*Endpoint para ver mis contribuciones: https://projectplanning-cloud.onrender.com/docs#/Compromisos/get_compromisos_by_usuario_compromisos_usuario_get 
+                                Tenes q mandar el jwt. nada mas
+                                     Estilo de respuesta:
+                                     [
+                                        {
+                                            "id_etapa": 4,
+                                            "descripcion": "Compromiso generado para la etapa 4",
+                                            "id_contribuyente": 1,
+                                            "id": 4,
+                                            "estado": "comprometido",
+                                            "fecha_creacion": "2025-11-13",
+                                            "titulo_etapa": "asd",
+                                            "descripcion_etapa": "asd"
+                                        }
+                                    ]
+                                */}
                                 {/* opcion para Mis observaciones */}
                                 <ConfigMenu text="Cerrar sesión" onClickFunction={() => {
                                     localStorage.clear();

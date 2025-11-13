@@ -37,7 +37,13 @@ const EtapaInfo = ({ etapa }) => {
                         <p>Estado: {etapa.estado[0].toUpperCase() + etapa.estado.slice(1)}</p>
                         {etapa.estado == "cubierta" && (
                             // aca va el nombre de la ONG que se comprometio con la etapa
-                            <p> Cubierta por: nombre ONG</p>
+                            <p> Cubierta por: {etapa.ong_comprometida_name}</p>
+                        )}
+                        {etapa.estado == "ejecutandose" && (
+                            <>
+                                <p> Cubierta por: {etapa.ong_comprometida_name}</p>
+                                <p> Se está llevando a cabo desde el {new Date(etapa.fecha_inicio).toLocaleDateString('es-AR')} </p>
+                            </>
                         )}
                         {etapa.estado == "terminada" && (
                             <p> Se llevó a cabo desde el {new Date(etapa.fecha_inicio).toLocaleDateString('es-AR')} hasta el {new Date(etapa.fecha_fin).toLocaleDateString('es-AR')} </p>
