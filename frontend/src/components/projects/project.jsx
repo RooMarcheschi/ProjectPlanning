@@ -11,25 +11,7 @@ const Project = () => {
     const token = localStorage.getItem("token");
     const [project, setProject] = useState();
     const [etapas, setEtapas] = useState([]);
-    let advance, buttonTransition, strokeColor, buttonText;
-    
-    if (project?.estado == "publicado") {
-        buttonTransition = etapas.length > 0 && etapas.every(e => e.estado === "cubierta");
-        advance = etapas.filter(e => e.estado === "cubierta").length;
-        strokeColor = "#38e875";
-        buttonText = "Ejecutar proyecto";
-    } else if (project?.estado == "terminado") {
-        buttonTransition = etapas.length > 0 && etapas.every(e => e.estado === "terminada");
-        advance = etapas.filter(e => e.estado === "terminada").length;
-        strokeColor = "#1d7df5";
-        buttonText = "Finalizar proyecto";
-    }
-    const percentage = (advance / project?.cant_etapas) * 100;
-
-    useEffect(() => {
-        getProject();
-        getEtapas();
-    }, [])
+    let advance, buttonTransition, strokeColor, buttonText, buttonFunction;
 
     const getProject = async () => {
         try {
@@ -87,6 +69,66 @@ const Project = () => {
         }
     }
 
+    const ejecutarProyecto = async () => {
+        try {
+            const response = await fetch(`http://localhost:8001/proyectos/ejecutar/${projectId}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                toast.success("El proyecto se está ejecutando!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                })
+                getProject();
+                getEtapas();
+            } else {
+                toast.error(`Error al ejecutar el proyecto: ${data.detail.message}`, {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                })
+            }
+        } catch (error) {
+            toast.error(`Error al ejecutar el proyecto: ${error}`, {
+                position: "bottom-right",
+                autoClose: 3000,
+            })
+        }
+    }
+
+    const finalizarProyecto = () => {
+
+    }
+    useEffect(() => {
+        getProject();
+        getEtapas();
+    }, [])
+
+    useEffect(() => {
+        if (project?.estado) {
+            getEtapas();
+        }
+    }, [project?.estado]);
+
+    if (project?.estado == "publicado") {
+        buttonTransition = etapas.length > 0 && etapas.every(e => e.estado === "cubierta");
+        advance = etapas.filter(e => e.estado === "cubierta").length;
+        strokeColor = "#38e875";
+        buttonText = "Ejecutar proyecto";
+        buttonFunction = ejecutarProyecto;
+    } else {
+        buttonTransition = etapas.length > 0 && etapas.every(e => e.estado === "terminada");
+        advance = etapas.filter(e => e.estado === "terminada").length;
+        strokeColor = "#1d7df5";
+        buttonText = "Finalizar proyecto";
+        buttonFunction = finalizarProyecto;
+    }
+    const percentage = (advance / project?.cant_etapas) * 100;
+
     return (
         <div className="m-4 flex flex-col">
             <div className="flex flex-row justify-between">
@@ -99,8 +141,7 @@ const Project = () => {
                 <div className="flex flex-col justify-between">
                     {project && <CircularProgress percentage={percentage} strokeColor={strokeColor} />}
                     {project && buttonTransition && (
-                        <BlueButton text={buttonText} classAttr={"mr-8"} />
-                        //http://localhost:8001/proyectos/ejecutar/{projectId} este es el endpoint para ejecutar el proyecto
+                        <BlueButton text={buttonText} classAttr={"mr-8"} onClickFunction={buttonFunction} />
                     )}
                 </div>
             </div>

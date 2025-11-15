@@ -8,9 +8,12 @@ const AllEtapas = ({etapas, onEtapaChange }) => {
                 Colaborar a otros proyectos
             </h1>
 
-            {etapas.map(etapa => (
+            {etapas.length > 0 && etapas.map(etapa => (
                 <Etapa etapa={etapa} key={etapa.id} onEtapaChange={onEtapaChange} />
             ))}
+            {etapas.length === 0 && (
+                <p> No hay etapas en las que puedas colaborar. </p>
+            )}
         </div>
     )
 }

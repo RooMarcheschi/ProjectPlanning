@@ -8,12 +8,18 @@ from fastapi.security import OAuth2PasswordBearer
 from core.security import decode_token
 from datetime import date
 from config.database import get_db
-from dependencies import get_bonita_client, debug, wait_for_any_activity, wait_for_ready_activity
+from dependencies import (
+    get_bonita_client,
+    debug,
+    wait_for_any_activity,
+    wait_for_ready_activity,
+)
 import time
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
 
 @router.post("/crearProyecto")
 def crear_proyecto(
@@ -84,7 +90,7 @@ def crear_proyecto(
     try:
         bonita = get_bonita_client()
         process_id = bonita.get_process_id_by_name("Proyecto")
-        
+
         debug("Process ID:", process_id)
 
         result = bonita.start_process(process_definition_id=process_id)
@@ -131,7 +137,7 @@ def crear_proyecto(
                 "fecha_fin": date.today().isoformat(),
                 "id_proyecto": nuevo_proyecto.id,
                 "estado": "publicada",
-                "username":username,
+                "username": username,
                 "project_name": project_name,
             }
             etapas.append(etapa_obj)
@@ -158,8 +164,11 @@ def crear_proyecto(
         bonita.debug("ERROR CAPTURADO:", str(e))
         raise HTTPException(status_code=500, detail={"message": str(e)})
 
+
 @router.get("/allProjects")
-def get_projects(user_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_projects(
+    user_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -168,6 +177,7 @@ def get_projects(user_id: int, token: str = Depends(oauth2_scheme), db: Session 
         return {"success": True, "projects": projects}
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": str(e)})
+
 
 @router.get("/{project_id}")
 def get_project(
@@ -197,6 +207,8 @@ def get_my_projects(
         return {"success": True, "projects": proyectos}
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": str(e)})
+
+
 @router.post("/ejecutar/{project_id}")
 def ejecutar_proyecto(
     project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
@@ -207,10 +219,12 @@ def ejecutar_proyecto(
         raise HTTPException(status_code=401, detail="Invalid token")
     try:
         proyecto = proyecto_service.obtener_proyecto_por_id(db, project_id)
-        if not proyecto: 
+        if not proyecto:
             raise HTTPException(status_code=404, detail="Project not found")
         # Cambiar estado de proyecto
-        proyecto_service.actualizar_estado_proyecto(db, project_id, EstadoProyecto.ejecutandose)
+        proyecto_service.actualizar_estado_proyecto(
+            db, project_id, EstadoProyecto.ejecutandose
+        )
         # Ejecuar tarea de bonita
         bonita = get_bonita_client()
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
@@ -220,6 +234,6 @@ def ejecutar_proyecto(
         bonita.assign_task(task_id=task1, user_id=1)
         bonita.complete_activity(task_id=task1)
 
-        return {"success": True, "message": "Project finalized successfully"}
+        return {"success": True, "message": "Project executed successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail={"message": str(e)})
