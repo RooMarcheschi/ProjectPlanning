@@ -40,6 +40,8 @@ def actualizar_estado_proyecto(db: Session, proyecto_id: int, nuevo_estado: Esta
         db.commit()
         db.refresh(proyecto)
     return proyecto
+
+
 def obtener_proyectos_para_ong(db: Session, u_id: int):
     return (
         db.query(Proyecto)
@@ -89,5 +91,14 @@ def get_all_projects_except_id(db: Session, user_id: int):
         }
         for p, u in results
     ]
-
     return proyectos
+
+
+def terminar_proyecto(db: Session, proyecto_id: int):
+    proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
+    if not proyecto:
+        return None
+    proyecto.estado = EstadoProyecto.terminado
+    db.commit()
+    db.refresh(proyecto)
+    return proyecto

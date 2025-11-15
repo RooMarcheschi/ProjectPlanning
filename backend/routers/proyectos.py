@@ -223,3 +223,18 @@ def ejecutar_proyecto(
         return {"success": True, "message": "Project finalized successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/terminar_proyecto/{project_id}")
+def terminar_proyecto(project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        proyecto = proyecto_service.terminar_proyecto(db, project_id)
+        
+        #avisar a bonita que se termino el proyecto
+
+        return {"succes": True, "projects": proyecto}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
