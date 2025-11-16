@@ -1,6 +1,6 @@
 import Etapa from "./etapa";
 
-const AllEtapas = ({etapas, onEtapaChange }) => {
+const AllEtapas = ({ etapas, onEtapaChange }) => {
 
     return (
         <div className="flex flex-col h-full border border-gray-400 rounded-2xl shadow-lg bg-blue-100 p-4 overflow-y-auto overflow-x-hidden">
@@ -12,7 +12,9 @@ const AllEtapas = ({etapas, onEtapaChange }) => {
                 <Etapa etapa={etapa} key={etapa.id} onEtapaChange={onEtapaChange} />
             ))}
             {etapas.length === 0 && (
-                <p> No hay etapas en las que puedas colaborar. </p>
+                <p className="text-gray-500 flex justify-center items-center mt-10">
+                    No hay etapas en las que puedas colaborar.
+                </p>
             )}
         </div>
     )

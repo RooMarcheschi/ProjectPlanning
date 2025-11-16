@@ -98,7 +98,7 @@ const MyProjects = () => {
                     {projects.length === 0 ? (
                         <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex flex-col justify-center items-center w-full">
                             <p className="text-gray-500 flex justify-center items-center mt-10">
-                                No has creado ningún proyecto.
+                                No creaste ningún proyecto.
                             </p>
                             <a
                                 href="/cargarProyecto"
