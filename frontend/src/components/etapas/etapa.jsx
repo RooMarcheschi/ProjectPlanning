@@ -27,7 +27,7 @@ const Etapa = ({ etapa, onEtapaChange }) => {
             if (data.success) {
                 toast.success("Se ha generado correctamente el compromiso!", {
                     "position": "bottom-right",
-                    "autoClose": "3000",
+                    autoClose: 3000,
                 })
                 if (onEtapaChange) {
                     onEtapaChange();

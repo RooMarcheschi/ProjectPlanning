@@ -33,13 +33,15 @@ def existe_proyecto_para_ong(db: Session, proyecto_titulo: str, u_id: int):
     )
 
 
-def actualizar_estado_proyecto(db: Session, proyecto_id: int, nuevo_estado: EstadoProyecto):
+def actualizar_estado_proyecto(
+    db: Session, proyecto_id: int, nuevo_estado: EstadoProyecto
+):
     proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
-    if proyecto:
-        proyecto.estado = nuevo_estado
-        db.commit()
-        db.refresh(proyecto)
-    return proyecto
+    if not proyecto:
+        return
+    proyecto.estado = nuevo_estado
+    db.commit()
+    db.refresh(proyecto)
 
 
 def obtener_proyectos_para_ong(db: Session, u_id: int):

@@ -18,7 +18,7 @@ const EtapaInfo = ({ etapa }) => {
             setProperties(propertiesClosed);
         }
         else {
-            const propertiesOpen = etapa.estado == "cubierta" || etapa.estado == "terminada" ? "h-44" : "h-40";
+            const propertiesOpen = "h-48";
             setProperties(propertiesOpen);
         }
     }

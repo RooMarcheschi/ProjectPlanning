@@ -102,15 +102,15 @@ function LoginForm() {
                     type={"submit"}
                 />
 
-                <div className="flex justify-between mt-4">
-                    {/* <a
+                {/* <div className="flex justify-between mt-4">
+                    <a
                         href="/changePassword"
                         className="text-blue-600 hover:underline transition-all duration-200 hover:text-lg"
                     >
                         ¿Olvidaste tu contraseña?
-                    </a> */}
+                    </a>
                     <LinkButton href="/register" text={"¿No tenés una cuenta? Registrate"} />
-                </div>
+                </div> */}
             </div>
         </form>
     )
