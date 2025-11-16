@@ -6,6 +6,7 @@ from config.database import get_db
 from dependencies import get_bonita_client
 from services import proyecto_service
 from pydantic import BaseModel
+import requests
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -63,7 +64,7 @@ def asumir_compromiso(payload: CompromisoPayload, db: Session = Depends(get_db),
     return {"success": True,"message": "Compromiso generado correctamente"}
 
 #Terminar compromisos?
-@router.post("/terminar/{proyecto_id}/{compromiso_id}")
+@router.post("/terminar/")
 def terminar_compromiso(proyecto_id:int,compromiso_id: int,db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     username = decode_token(token)
     if not username:
@@ -100,3 +101,15 @@ def terminar_compromiso(proyecto_id:int,compromiso_id: int,db: Session = Depends
     return {"success": True, "message": "Compromiso terminado correctamente", "compromiso_id": compromiso_id}
 
 #Get All my compromisos?
+@router.get("/my_compromisos/")
+def get_my_compromisos(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    url = "https://projectplanning-cloud.onrender.com/compromisos/usuario/"# reemplaza con la URL destino
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    
+    resp = requests.get(url, headers=headers, timeout=10)
+    resp.raise_for_status()
+    compromisos = resp.json()
+    return {"success": True, "compromisos": compromisos}
