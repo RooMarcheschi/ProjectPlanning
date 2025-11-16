@@ -5,7 +5,7 @@ import enum
 
 class EstadoCompromiso(enum.Enum):
     libre = "libre"
-    comprometida = "compremetida"
+    comprometida = "comprometida"
 
 class Compromiso():
     __abstract__ = True
