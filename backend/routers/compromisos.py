@@ -63,6 +63,40 @@ def asumir_compromiso(payload: CompromisoPayload, db: Session = Depends(get_db),
     return {"success": True,"message": "Compromiso generado correctamente"}
 
 #Terminar compromisos?
-
+@router.post("/terminar/{proyecto_id}/{compromiso_id}")
+def terminar_compromiso(proyecto_id:int,compromiso_id: int,db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        bonita = get_bonita_client()
+        proyecto = proyecto_service.obtener_proyecto_por_id(db, proyecto_id)
+        #Conseguir id del case
+        case = bonita.get_case_by_id(case_id=proyecto.idBonita)
+        #Setear JWT del user en bonia
+        bonita.set_case_variable(
+            case_id=case["id"],
+            variable_name="jwt",
+            value=token,
+            type_hint="java.lang.String"
+        )
+        #Setear el compromiso con el etapa_id
+        bonita.set_case_variable(
+            case_id=case["id"],
+            variable_name="compromiso",
+            value=compromiso_id,
+            type_hint="java.lang.Integer"
+        )   
+        #Avanzar las actividades en Bonita 1 vez
+        #Coom me fijo si anda o no  de bonita al cloud, por ejemplo si esta apagado el cloud
+        activity = bonita.search_activity_by_case(case_id=case["id"])
+        task = activity[0]["id"]
+        while activity[0]["state"] != "ready":
+            activity = bonita.search_activity_by_case(case_id=case["id"])
+        bonita.assign_task(task_id=task, user_id=1) # Asignar la tarea al usuario ni siquiera es walter.bates ese como arreglamos?
+        res = bonita.complete_activity(task_id=task)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error communicating with Bonita: " + str(e))
+    return {"success": True, "message": "Compromiso terminado correctamente", "compromiso_id": compromiso_id}
 
 #Get All my compromisos?
