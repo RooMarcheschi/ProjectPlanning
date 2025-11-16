@@ -2,6 +2,7 @@ import BlueButton from "../buttons/blueButton";
 import CircularProgress from "./circularProgress";
 import EtapaInfo from "../etapas/etapaInfo";
 import LinkButton from "../buttons/linkButton"
+import ObservationsPanel from "../observaciones/observationsPanel";
 import { toast } from "react-toastify";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
@@ -11,6 +12,7 @@ const Project = () => {
     const token = localStorage.getItem("token");
     const [project, setProject] = useState();
     const [etapas, setEtapas] = useState([]);
+    const [observations, setObservations] = useState();
     let advance, buttonTransition, strokeColor, buttonText, buttonFunction;
 
     const getProject = async () => {
@@ -52,7 +54,6 @@ const Project = () => {
             });
             const data = await response.json();
             if (data.success) {
-                console.log(data.etapas);
                 setEtapas(data.etapas);
             }
             else {
@@ -66,6 +67,35 @@ const Project = () => {
                 "position": "bottom-right",
                 "autoClose": 3000
             });
+        }
+    }
+
+    const getObservations = async () => {
+        try {
+            const response = await fetch(`http://localhost:8001/observaciones/project_observations?project_id=${projectId}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setObservations(data.observations);
+                console.log(data.observations);
+            } else {
+                toast.error(`Error al conseguir las observaciones: ${data.detail.message}`, {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
+                window.location.href = "/myProjects";
+            }
+        } catch (error) {
+            toast.error(`Error al conseguir las observaciones: ${error}`, {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+            window.location.href = "/myProjects";
         }
     }
 
@@ -103,9 +133,41 @@ const Project = () => {
     const finalizarProyecto = () => {
 
     }
+
+    const resolveObservation = async (observationId) => {
+        try {
+            const response = await fetch(`http://localhost:8001/observaciones/resolve_observation?observation_id=${observationId}`, {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                toast.success("Observación resuelta!", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                })
+                getObservations();
+            } else {
+                toast.error(`Error al resolver la observación: ${data.detail.message}`, {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                })
+            }
+        } catch (error) {
+            toast.error(`Error al resolver la observación: ${error}`, {
+                position: "bottom-right",
+                autoClose: 3000,
+            })
+        }
+    }
+
     useEffect(() => {
         getProject();
         getEtapas();
+        getObservations();
     }, [])
 
     useEffect(() => {
@@ -146,10 +208,21 @@ const Project = () => {
                 </div>
             </div>
             <LinkButton href={"/myProjects"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"} />
-            <h1 className="text-2xl font-bold text-gray-800 m-2"> Información de las etapas:</h1>
-            {etapas.map((etapa) => (
-                <EtapaInfo etapa={etapa} key={etapa.id} />
-            ))}
+            <div className="flex flex-row gap-6 mt-4">
+
+                <div className="flex-1">
+                    <h1 className="text-2xl font-bold text-gray-800 m-2"> Información de las etapas:</h1>
+
+                    {etapas.map(etapa => (
+                        <EtapaInfo etapa={etapa} key={etapa.id} />
+                    ))}
+                </div>
+
+                {observations && (
+                    <ObservationsPanel observations={observations}
+                        onResolve={resolveObservation} />
+                )}
+            </div>
         </div>
     )
 }
