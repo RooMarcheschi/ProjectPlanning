@@ -100,11 +100,7 @@ const MyProjects = () => {
                             <p className="text-gray-500 flex justify-center items-center mt-10">
                                 No creaste ningún proyecto.
                             </p>
-                            <a
-                                href="/cargarProyecto"
-                                className="text-blue-600 hover:underline transition-all duration-200 hover:text-lg mt-4">
-                                Crear un proyecto
-                            </a>
+                            <LinkButton href={"/cargarProyecto"} text={"Crear un proyecto"} classAttr={"mt-4"}/>
                         </div>
                     ) : filteredProjects.length > 0 ? (
                         filteredProjects.map((project) => (
@@ -119,11 +115,7 @@ const MyProjects = () => {
                             <p className="text-gray-500 flex justify-center items-center mt-10">
                                 No se encontraron proyectos.
                             </p>
-                                <a
-                                    href="/cargarProyecto"
-                                    className="text-blue-600 hover:underline transition-all duration-200 hover:text-lg mt-4">
-                                    Crear un proyecto
-                                </a>
+                            <LinkButton href={"/cargarProyecto"} text={"Crear un proyecto"} classAttr={"mt-4"}/>
                         </div>
                     )}
                 </div>

@@ -34,6 +34,7 @@ def generar_case(db: Session = Depends(get_db), token: str = Depends(oauth2_sche
         return {"success": True, "message": "Case de observacion generado correctamente", "case_id": result["caseId"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error generating case in Bonita: " + str(e))
+    
 @router.get("/")
 def get_all_observaciones(
     db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
@@ -60,6 +61,7 @@ def cancelar_observacion(
         return {"success": True, "message": "Observacion cancelada correctamente"}
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": str(e)})
+
 @router.post("/realizar_observacion")
 def realizar_observacion(
     obs: ObservacionCreate,
