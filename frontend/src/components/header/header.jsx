@@ -48,7 +48,7 @@ const Header = () => {
                         {openMenu && (
                             <div className="absolute right-0 mt-12 w-48 bg-white border border-gray-300 rounded shadow-lg z-10">
                                 <ConfigMenu text="Mis proyectos" redirect={"/myProjects"} />
-                                <ConfigMenu text="Mis contribuciones" />
+                                <ConfigMenu text="Mis compromisos" redirect={"/misCompromisos"}/>
                                 {/*Endpoint para ver mis contribuciones: https://projectplanning-cloud.onrender.com/docs#/Compromisos/get_compromisos_by_usuario_compromisos_usuario_get 
                                 Tenes q mandar el jwt. nada mas
                                      Estilo de respuesta:

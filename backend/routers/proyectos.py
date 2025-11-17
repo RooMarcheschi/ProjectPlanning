@@ -247,7 +247,11 @@ def terminar_proyecto(project_id: int, db: Session = Depends(get_db), token: str
         proyecto = proyecto_service.terminar_proyecto(db, project_id)
         
         #avisar a bonita que se termino el proyecto
-
+        bonita = get_bonita_client()
+        activities = wait_for_any_activity(bonita, proyecto.idBonita)
+        task1 = activities[0]["id"]
+        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.complete_activity(task_id=task1)
         return {"succes": True, "projects": proyecto}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
