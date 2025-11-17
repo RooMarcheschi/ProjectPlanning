@@ -136,6 +136,9 @@ def get_my_compromisos(
         resp = requests.get(url, headers=headers, timeout=10)
         resp.raise_for_status()
         compromisos = resp.json()
+        for compromiso in compromisos:
+            proyecto = proyecto_service.obtener_proyecto_por_id(db, compromiso["id_proyecto"])
+            compromiso["titulo_proyecto"] = proyecto.titulo
         return {"success": True, "compromisos": compromisos}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
