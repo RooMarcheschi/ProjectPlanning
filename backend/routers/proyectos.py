@@ -7,13 +7,15 @@ from dependencies import (
     wait_for_any_activity,
     wait_for_ready_activity,
 )
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from fastapi.security import OAuth2PasswordBearer
+from io import BytesIO
 import json
 from models.proyecto import Proyecto, EstadoProyecto
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from services import proyecto_service
+from services import proyecto_service, observacion_service
+from reportlab.pdfgen import canvas
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
@@ -242,18 +244,93 @@ def ejecutar_proyecto(
         raise HTTPException(status_code=500, detail={"message": str(e)})    
 
 @router.post("/terminar_proyecto")
-def terminar_proyecto(data: ProjectID, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+def terminar_proyecto(
+    data: ProjectID,
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+
     try:
         proyecto = proyecto_service.terminar_proyecto(db, data.project_id)
-        #avisar a bonita que se termino el proyecto
+        if not proyecto:
+            raise HTTPException(status_code=404, detail="Proyecto no encontrado")
         bonita = get_bonita_client()
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
         task1 = activities[0]["id"]
         bonita.assign_task(task_id=task1, user_id=1)
         bonita.complete_activity(task_id=task1)
-        return {"success": True, "projects": proyecto}
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+
+        pdf.setFont("Helvetica-Bold", 16)
+        pdf.drawString(100, 800, f"Reporte del Proyecto #{proyecto.id}")
+
+        pdf.setFont("Helvetica", 12)
+        pdf.drawString(100, 770, f"Título: {proyecto.titulo}")
+        pdf.drawString(100, 750, f"Descripción: {proyecto.descripcion}")
+        pdf.drawString(100, 730, f"Fecha de creación: {proyecto.fecha_creacion}")
+        pdf.drawString(100, 710, f"Estado final: Terminado")
+        y = 710 - 30 
+
+        # Etapas
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(100, y, "Etapas:")
+        y -= 20
+
+        pdf.setFont("Helvetica", 12)
+        pdf.drawString(100, y, f"Información de las {proyecto.cant_etapas} etapa/s:")
+        y -= 20
+
+        # Conseguir las etapas del cloud usando Bonita
+        # etapas = bonita.getEtapas
+        # for etapa in etapas:
+        #     pdf.drawString(120, y, f"- {etapa.nombre}: {etapa.estado}")
+        #     y -= 20
+        #     if y < 50:
+        #         pdf.showPage()
+        #         y = 800
+
+        # Observaciones
+        y -= 30
+
+        if y < 80:
+             pdf.showPage()
+             y = 800
+        
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(100, y, "Observaciones:")
+        y -= 20
+
+        pdf.setFont("Helvetica", 12)
+    
+        observaciones = observacion_service.get_all_observations(proyecto.id, db)
+        
+        if not observaciones:
+            pdf.drawString(120, y, "No hay observaciones registradas.")
+            y -= 20
+        else:
+            for obs in observaciones:
+                pdf.drawString(120, y, f"- {obs.descripcion} ({obs.resuelto})")
+                y -= 20
+                
+                if y < 50:
+                    pdf.showPage()
+                    y = 800
+
+        pdf.save()
+        buffer.seek(0)
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=proyecto_{proyecto.id}.pdf"
+            },
+        )
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

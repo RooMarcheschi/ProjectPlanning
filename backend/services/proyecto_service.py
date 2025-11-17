@@ -1,9 +1,6 @@
-from sqlalchemy import String, func
 from sqlalchemy.orm import Session
 from models.proyecto import Proyecto, EstadoProyecto
 from models.user import User
-from datetime import date
-
 
 def crear_proyecto(db: Session, nuevo_proyecto: Proyecto):
     db.add(nuevo_proyecto)

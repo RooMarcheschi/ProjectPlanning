@@ -28,7 +28,6 @@ def eliminar_observacion(db: Session, observacion_id: int):
 def get_observacion_by_id(id: int, db: Session):
     return db.query(Observacion).filter(Observacion.id == id).first()
 
-
 def get_observaciones_por_proyecto(id_proyecto: int, db: Session):
     observaciones = (
         db.query(Observacion)
@@ -49,6 +48,9 @@ def get_observaciones_por_proyecto(id_proyecto: int, db: Session):
         }
         for obs in observaciones
     ]
+
+def get_all_observations(id_proyecto, db: Session):
+    return db.query(Observacion).filter(Observacion.id_proyecto == id_proyecto).all()
 
 def resolve_observation(observation_id: int, db: Session):
     observation = get_observacion_by_id(observation_id, db)

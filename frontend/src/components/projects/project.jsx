@@ -132,7 +132,7 @@ const Project = () => {
 
     const finalizarProyecto = async () => {
         const bodyJSON = {
-            "project_id": projectId,
+            project_id: projectId,
         };
 
         try {
@@ -145,26 +145,36 @@ const Project = () => {
                 body: JSON.stringify(bodyJSON),
             });
 
-            const data = await response.json();
-            if (data.success) {
-                getProject();
-                toast.success("El proyecto ha sido finalizado con éxito!", {
+            if (!response.ok) {
+                toast.error("Error al finalizar el proyecto", {
                     position: "bottom-right",
                     autoClose: 3000,
                 });
-            } else {
-                toast.error(`Error al finalizar el proyecto: ${data.detail}`, {
-                    position: "bottom-right",
-                    autoClose: 3000,
-                });
+                return;
             }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `proyecto_${projectId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("El proyecto ha sido finalizado con éxito!", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+            getProject();
         } catch (error) {
             toast.error(`Error al finalizar el proyecto: ${error}`, {
                 position: "bottom-right",
                 autoClose: 3000,
             });
         }
-    }
+    };
+
 
     const resolveObservation = async (observationId) => {
         try {
