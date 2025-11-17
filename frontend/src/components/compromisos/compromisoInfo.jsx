@@ -23,7 +23,7 @@ const CompromisoInfo = ({ compromiso, refreshFunction }) => {
             setProperties(propertiesClosed);
         }
         else {
-            const propertiesOpen = compromiso.estado == "ejecutandose" ? "h-48" : "h-32";
+            const propertiesOpen = compromiso.estado == "ejecutandose" ? "h-52" : "h-40";
             setProperties(propertiesOpen);
         }
     }
@@ -70,7 +70,7 @@ const CompromisoInfo = ({ compromiso, refreshFunction }) => {
         <div className={`m-2 ${backgroundColor} w-full p-6 ${properties} cursor-pointer rounded-2xl transition-all duration-500 ease-in-out overflow-hidden`}
             onClick={() => deployCompromiso()}>
             <div className="flex flex-row justify-between">
-                <h1 className="text-2xl font-bold text-gray-800"> Te comprometiste con {compromiso.titulo_etapa} </h1>
+                <h1 className="text-2xl font-bold text-gray-800"> Te comprometiste con {compromiso.titulo_proyecto} </h1>
                 <button> {deploy ? "▲" : "▼"}</button>
             </div>
 
@@ -78,6 +78,15 @@ const CompromisoInfo = ({ compromiso, refreshFunction }) => {
                 {deploy && (
                     <>
                         <div>
+                            {compromiso.estado == "comprometido" && (
+                                <p> Vas a ayudar en la etapa {compromiso.titulo_etapa}</p>
+                            )}
+                            {compromiso.estado == "ejecutandose" && (
+                                <p> Estás ayudando en la etapa {compromiso.titulo_etapa}</p>
+                            )}
+                            {compromiso.estado == "terminado" && (
+                                <p> ¡Ayudaste en la etapa {compromiso.titulo_etapa}! </p>
+                            )}
                             <p>Estado: {compromiso.estado[0].toUpperCase() + compromiso.estado.slice(1)}</p>
                             <p className="text-gray-600 mb-4 text-sm mt-2">
                                 Fecha de creación: {new Date(compromiso.fecha_creacion).toLocaleDateString('es-AR')}
@@ -87,7 +96,7 @@ const CompromisoInfo = ({ compromiso, refreshFunction }) => {
                             <div className="flex items-center justify-end">
                                 {show && (
                                     <div className="flex flex-col">
-                                        <div className="flex flex-row px-4 py-2 items-center justify-between">
+                                        <div className="flex flex-row items-center justify-between">
                                             <RedButton text={"Cancelar"} classAttr={"mr-20"} onClickFunction={(e) => { e.stopPropagation(); setShow(false) }} />
                                             <GreenButton text={"Terminar compromiso"} onClickFunction={(e) => terminarCompromiso(e)} />
                                         </div>

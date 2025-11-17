@@ -1,24 +1,27 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, status
-import json
-from sqlalchemy.orm import Session
-from services import proyecto_service, user_service
-from models.proyecto import Proyecto, EstadoProyecto
-from models.etapa import Etapa, EstadoEtapa
-from fastapi.security import OAuth2PasswordBearer
+from config.database import get_db
 from core.security import decode_token
 from datetime import date
-from config.database import get_db
 from dependencies import (
     get_bonita_client,
     debug,
     wait_for_any_activity,
     wait_for_ready_activity,
 )
-import time
+from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+import json
+from models.proyecto import Proyecto, EstadoProyecto
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from services import proyecto_service
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+
+class ProjectID(BaseModel):
+    project_id: int
 
 
 @router.post("/crearProyecto")
@@ -238,20 +241,19 @@ def ejecutar_proyecto(
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": str(e)})    
 
-@router.get("/terminar_proyecto/{project_id}")
-def terminar_proyecto(project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+@router.post("/terminar_proyecto")
+def terminar_proyecto(data: ProjectID, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
     try:
-        proyecto = proyecto_service.terminar_proyecto(db, project_id)
-        
+        proyecto = proyecto_service.terminar_proyecto(db, data.project_id)
         #avisar a bonita que se termino el proyecto
         bonita = get_bonita_client()
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
         task1 = activities[0]["id"]
         bonita.assign_task(task_id=task1, user_id=1)
         bonita.complete_activity(task_id=task1)
-        return {"succes": True, "projects": proyecto}
+        return {"success": True, "projects": proyecto}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

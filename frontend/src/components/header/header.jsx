@@ -80,7 +80,7 @@ const Header = () => {
                                 {showNotifications && (
                                     <>
                                         {hasEtapas ? (
-                                            <NotificationMenu longText="Hay etapas nuevas en las que podés colaborar." />
+                                            <NotificationMenu longText="Hay etapas nuevas en las que podés comprometerte." />
                                         ) : (
                                             <span className="block px-2 py-2 text-gray-800">No hay notificaciones nuevas</span>
                                         )}

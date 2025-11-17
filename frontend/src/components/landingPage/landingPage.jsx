@@ -10,7 +10,7 @@ const LandingPage = () => {
     const [etapas, setEtapas] = useState([]);
     const { setHasEtapas } = useEtapas();
     const token = localStorage.getItem("token");
-    const [message, setMessage] = useState("Como ONG, vas a poder crear y colaborar a otros proyectos.");
+    const [message, setMessage] = useState("Como ONG, vas a poder crear y comprometerte a otros proyectos.");
 
     useEffect(() => {
         hasPermissions();
@@ -29,7 +29,7 @@ const LandingPage = () => {
             const data = await response.json();
             if (data.success && data.permissions) {
                 setPermissions(true);
-                setMessage("Como gerente, vas a poder crear proyectos, colaborar, escribir observaciones y ver reportes.");
+                setMessage("Como gerente, vas a poder crear proyectos, comprometerte, escribir observaciones y ver reportes.");
             }
         } catch (error) {
             toast.error(`Error getting permissions : ${error}`, {
@@ -41,7 +41,6 @@ const LandingPage = () => {
 
     const getEtapas = async () => {
         try {
-            //const res = await fetch(`http://localhost:8001/etapas?name=${encodeURIComponent(ongName)}`);
             const res = await fetch("http://localhost:8001/etapas", {
                 method: "GET",
                 headers: {
@@ -72,12 +71,10 @@ const LandingPage = () => {
                     <AllEtapas etapas={etapas} onEtapaChange={getEtapas} />
                 </div>
 
-                <div
-                    className={`w-2/3 grid ${permissions ? "grid-rows-2 grid-cols-2" : "grid-rows-2 grid-cols-1"
-                        } gap-6 p-6`}
-                >
+                <div className={`w-2/3 grid ${permissions ? "grid-rows-3 grid-cols-2" : "grid-rows-3 grid-cols-1"} gap-6 p-6`}>
                     <Rectangle title="Crear proyecto" redirect={"/cargarProyecto"} />
                     <Rectangle title="Mis proyectos" redirect={"/myProjects"} />
+                    <Rectangle title="Mis compromisos" redirect={"/misCompromisos"} icon={"commitments"}/>
                     {permissions && (
                         <>
                             <Rectangle title="Crear observaciones" redirect="/allProjects" icon="pencil" />
@@ -85,7 +82,6 @@ const LandingPage = () => {
                         </>
                     )}
                 </div>
-
             </div>
         </div>
     );
