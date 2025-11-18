@@ -175,7 +175,6 @@ const Project = () => {
         }
     };
 
-
     const resolveObservation = async (observationId) => {
         try {
             const response = await fetch(`http://localhost:8001/observaciones/resolve_observation?observation_id=${observationId}`, {
