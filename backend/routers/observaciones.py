@@ -8,7 +8,7 @@ from models.observacion import Observacion
 from pydantic import BaseModel
 from services import observacion_service, user_service, etapa_service
 from sqlalchemy.orm import Session
-
+from services import proyecto_service
 router = APIRouter(prefix="/observaciones", tags=["Observaciones"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -80,6 +80,7 @@ def realizar_observacion(
         id_observante=obs.observante_id,
         descripcion=obs.descripcion,
         fecha_creacion=date.today(),
+        case_id=case_id,
     )
     try:
         observacion = observacion_service.crear_observacion(
@@ -155,8 +156,14 @@ def patch_resolve_observation(observation_id: int, db: Session = Depends(get_db)
     if not username:
         raise HTTPException(status_code=401, detail={"message": "Invalid token"})
     try:
-        observacion_service.resolve_observation(observation_id, db)
+        #observacion_service.resolve_observation(observation_id, db)
         # Avanzar en el proceso de Bonita
+        observacion = observacion_service.get_observacion_by_id(observation_id, db)
+        bonita = get_bonita_client()
+        activities = wait_for_any_activity(bonita, observacion.case_id)
+        task1 = activities[0]["id"]
+        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.complete_activity(task_id=task1)
         return {"success": True, "message": "Observation resolved" }
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": str(e)})

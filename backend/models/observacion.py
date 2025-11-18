@@ -11,6 +11,6 @@ class Observacion(Base):
     descripcion = Column(String, nullable=False)
     fecha_creacion = Column(Date, nullable=False)
     resuelto = Column(Boolean, nullable=False, default=False)
-
+    case_id = Column(Integer, nullable=False)
     proyecto = relationship("Proyecto", back_populates="observaciones")
     observante = relationship("User", back_populates="observaciones")
