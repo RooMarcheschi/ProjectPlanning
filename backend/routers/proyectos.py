@@ -166,7 +166,7 @@ def crear_proyecto(
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
-        bonita.debug("ERROR CAPTURADO:", str(e))
+        debug("ERROR CAPTURADO:", str(e))
         raise HTTPException(status_code=500, detail={"message": str(e)})
 
 
@@ -257,6 +257,10 @@ def terminar_proyecto(
         proyecto = proyecto_service.terminar_proyecto(db, data.project_id)
         if not proyecto:
             raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+        if str(proyecto.estado) != EstadoProyecto.ejecutandose:
+            raise HTTPException(status_code=400, detail="Proyecto inválido")
+        if (observacion_service.has_unresolved_observations(proyecto.id, db)):
+            raise HTTPException(status_code=400, detail="Proyecto inválido")
         bonita = get_bonita_client()
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
         task1 = activities[0]["id"]
