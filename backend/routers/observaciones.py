@@ -192,7 +192,7 @@ def patch_resolve_observation(
     if not username:
         raise HTTPException(status_code=401, detail={"message": "Invalid token"})
     try:
-        #observacion_service.resolve_observation(observation_id, db)
+        observacion_service.resolve_observation(observation_id, db)
         # Avanzar en el proceso de Bonita
         observacion = observacion_service.get_observacion_by_id(observation_id, db)
         bonita = get_bonita_client()
