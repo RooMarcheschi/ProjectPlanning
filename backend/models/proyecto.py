@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Enum
+from sqlalchemy import Column, ForeignKey, Integer, String, Date, Enum
 from sqlalchemy.orm import relationship
 from config.database import Base
 import enum
@@ -16,10 +16,11 @@ class Proyecto(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     titulo = Column(String, nullable=False)
     descripcion = Column(String, nullable=False)
-    ong = Column(String, nullable=False)
     fecha_creacion = Column(Date, nullable=False)
     estado = Column(Enum(EstadoProyecto), nullable=False)
-
-    etapas = relationship(
-        "Etapa", back_populates="proyecto", cascade="all, delete-orphan"
-    )
+    user_id = Column(Integer, ForeignKey("users.id"))
+    idBonita = Column(Integer, nullable=True)
+    cant_etapas = Column(Integer, nullable=False)
+    
+    user = relationship("User", back_populates="proyectos")
+    observaciones = relationship("Observacion", back_populates="proyecto")

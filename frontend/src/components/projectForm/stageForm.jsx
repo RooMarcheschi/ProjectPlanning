@@ -4,7 +4,7 @@ function Stage({ stageNumber }) {
             <label htmlFor={`stageName${stageNumber}`} className="font-semibold text-gray-700">
                 Nombre de la etapa {stageNumber}
             </label>
-            <input type="text" className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition"
+            <input type="text" className="border-2 border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:border-blue-400 transition hover:border-blue-200"
                 placeholder={`Etapa ${stageNumber}`}
                 name={`stageName${stageNumber}`}
                 required
@@ -15,7 +15,7 @@ function Stage({ stageNumber }) {
             </label>
             <textarea
                 name={`stageDesc${stageNumber}`}
-                className="border-2 border-gray-300 rounded px-3 py-2 h-30 w-full focus:outline-none focus:border-blue-400 transition"
+                className="border-2 border-gray-300 rounded px-3 py-2 h-30 w-full focus:outline-none focus:border-blue-400 transition hover:border-blue-200"
                 placeholder={`Descripción de la etapa ${stageNumber}`}
                 required
                 id={`stageDesc${stageNumber}`}

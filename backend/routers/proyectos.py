@@ -1,38 +1,78 @@
-from fastapi import APIRouter, Body, Depends, HTTPException
-from bonita_client import BonitaClient
-from sqlalchemy.orm import Session
-from services import proyecto_service, etapa_service
-from models.proyecto import Proyecto, EstadoProyecto
-from models.etapa import Etapa, EstadoEtapa
-from datetime import date
 from config.database import get_db
-from dependencies import get_bonita_client
+from core.security import decode_token
+from datetime import date
+from dependencies import (
+    get_bonita_client,
+    debug,
+    wait_for_any_activity,
+    wait_for_ready_activity,
+)
+from fastapi import APIRouter, Body, Depends, HTTPException, Response
+from fastapi.security import OAuth2PasswordBearer
+from io import BytesIO
+import json
+from models.proyecto import Proyecto, EstadoProyecto
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from services import proyecto_service, observacion_service
+from reportlab.pdfgen import canvas
+import requests
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-# Crear un proyecto
+
+class ProjectID(BaseModel):
+    project_id: int
+
+
 @router.post("/crearProyecto")
-def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
-    ong_Name = proyecto["ongName"]
+def crear_proyecto(
+    proyecto: dict = Body(...),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
     project_name = proyecto["projectName"]
     project_desc = proyecto["projectDesc"]
     amount_stages = proyecto["stagesAmount"]
-
-    if not ong_Name or type(ong_Name) != str or ong_Name.strip() == "":
-        return {"success": False, "message": "Invalid ONG name"}
+    u_id = int(proyecto["userId"])
 
     if not project_name or type(project_name) != str or project_name.strip() == "":
-        return {"success": False, "message": "Invalid Project name"}
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "field": "project_name",
+                "message": "El nombre del proyecto es inválido",
+            },
+        )
 
-    if proyecto_service.obtener_proyecto_por_titulo(db, project_name):
-        return {"success": False, "message": "Project name already in use"}
+    if proyecto_service.existe_proyecto_para_ong(db, project_name, u_id):
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "field": "project_name",
+                "message": "El nombre del proyecto ya está en uso",
+            },
+        )
 
     if not amount_stages or type(amount_stages) != int:
-        return {"success": False, "message": "Invalid amount of stages"}
+        raise HTTPException(
+            status_code=409,
+            detail={"field": "amount_stages", "message": "Cantidad de etapas inválida"},
+        )
 
     if not project_desc or type(project_desc) != str or project_desc.strip() == "":
-        return {"success": False, "message": "Invalid Project description"}
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "field": "project_desc",
+                "message": "Descripción de proyecto inválida",
+            },
+        )
 
     for i, stage in enumerate(proyecto["stages"]):
         name = stage["name"]
@@ -45,50 +85,285 @@ def crear_proyecto(proyecto: dict = Body(...), db: Session = Depends(get_db)):
             or type(desc) != str
             or desc.strip() == ""
         ):
-            return {"success": False, "message": f"Error with stage {i+1}"}
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "field": "project_desc",
+                    "message": f"Error con la etapa {i+1}",
+                },
+            )
 
     try:
-        proy = Proyecto(
-            titulo=project_name,
-            descripcion=project_desc,
-            ong=ong_Name,
-            fecha_creacion=date.today(),
-            estado=EstadoProyecto.publicado,
-        )
-        nuevo_proyecto = proyecto_service.crear_proyecto(db, proy)
-
-        for i, stage in enumerate(proyecto["stages"]):
-            name = stage["name"]
-            desc = stage["description"]
-            # tenemos que chequear fecha inicio y fecha fin
-            etapa = Etapa(
-                id_proyecto=nuevo_proyecto.id,
-                titulo=name,
-                descripcion=desc,
-                fecha_creacion=date.today(),
-                fecha_inicio=date.today(),
-                fecha_fin=date.today(),
-                estado=EstadoEtapa.publicada,
-            )
-            nueva_etapa = etapa_service.crear_etapa(db, etapa)
-
-        # Conection with Bonita
-        # bonita = get_bonita_client()
         bonita = get_bonita_client()
-        # Consigo el id del proceso, antes era "pool" lo tuve q cambiar en bonita
         process_id = bonita.get_process_id_by_name("Proyecto")
-        # Inicio el proceso con las variables, capaz tendriamos q añadir variables?
-        # Nombre de ong? Descripcion? etc?
+
+        debug("Process ID:", process_id)
+
         result = bonita.start_process(process_definition_id=process_id)
-        print(result["caseId"])
-        res = bonita.set_case_variable(
+        debug("Resultado start_process:", result)
+
+        bonita.set_case_variable(
             case_id=result["caseId"],
             variable_name="etapasTotales",
             value=amount_stages,
             type_hint="java.lang.Integer",
-            debug=True,
         )
+
+        proy = Proyecto(
+            titulo=project_name,
+            descripcion=project_desc,
+            user_id=u_id,
+            fecha_creacion=date.today(),
+            estado=EstadoProyecto.publicado,
+            idBonita=result["caseId"],
+            cant_etapas=amount_stages,
+        )
+        nuevo_proyecto = proyecto_service.crear_proyecto(db, proy)
+
+        bonita.set_case_variable(
+            case_id=result["caseId"],
+            variable_name="iddb",
+            value=nuevo_proyecto.id,
+            type_hint="java.lang.Integer",
+        )
+
+        activities = wait_for_any_activity(bonita, result["caseId"])
+        task1 = activities[0]["id"]
+        debug("Primera actividad:", activities[0])
+
+        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.complete_activity(task_id=task1)
+
+        etapas = []
+        for stage in proyecto["stages"]:
+            etapa_obj = {
+                "titulo": stage["name"],
+                "descripcion": stage["description"],
+                "fecha_inicio": date.today().isoformat(),
+                "fecha_fin": date.today().isoformat(),
+                "id_proyecto": nuevo_proyecto.id,
+                "estado": "publicada",
+                "username": username,
+                "project_name": project_name,
+            }
+            etapas.append(etapa_obj)
+
+        bonita.set_case_variable(
+            case_id=result["caseId"],
+            variable_name="etapas",
+            value=json.dumps(etapas),
+            type_hint="java.lang.String",
+        )
+
+        last_id = None
+        for i in range(2):
+            debug(f"\n--- Ciclo actividad {i+1} ---")
+            act = wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
+
+            bonita.assign_task(task_id=act["id"], user_id=2)
+            bonita.complete_activity(task_id=act["id"])
+            last_id = act["id"]
+
         return {"success": True, "message": "Project submitted successfully"}
+
+    except Exception as e:
+        debug("ERROR CAPTURADO:", str(e))
+        raise HTTPException(status_code=500, detail={"message": str(e)})
+
+
+@router.get("/allProjects")
+def get_projects(
+    user_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        projects = proyecto_service.get_all_projects_except_id(db=db, user_id=user_id)
+        return {"success": True, "projects": projects}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"message": str(e)})
+
+
+@router.get("/{project_id}")
+def get_project(
+    project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        proyecto = proyecto_service.obtener_proyecto_por_id(db, project_id)
+        if not proyecto:
+            raise HTTPException(status_code=404, detail="Project not found")
+        return {"success": True, "project": proyecto}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"message": str(e)})
+
+
+@router.get("/myProjects/{user_id}")
+def get_my_projects(
+    user_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        proyectos = proyecto_service.obtener_proyectos_para_ong(db, user_id)
+        return {"success": True, "projects": proyectos}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"message": str(e)})
+
+
+@router.post("/ejecutar/{project_id}")
+def ejecutar_proyecto(
+    project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        proyecto = proyecto_service.obtener_proyecto_por_id(db, project_id)
+        if not proyecto:
+            raise HTTPException(status_code=404, detail="Project not found")
+        # Cambiar estado de proyecto
+        proyecto_service.actualizar_estado_proyecto(
+            db, project_id, EstadoProyecto.ejecutandose
+        )
+        # Ejecuar tarea de bonita
+        bonita = get_bonita_client()
+        activities = wait_for_any_activity(bonita, proyecto.idBonita)
+        task1 = activities[0]["id"]
+        debug("Primera actividad:", activities[0])
+
+        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.complete_activity(task_id=task1)
+
+        return {"success": True, "message": "Project executed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"message": str(e)})
+
+
+@router.post("/terminar_proyecto")
+def terminar_proyecto(
+    data: ProjectID, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    try:
+        proyecto = proyecto_service.terminar_proyecto(db, data.project_id)
+        if not proyecto:
+            raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+        # if str(proyecto.estado) != EstadoProyecto.ejecutandose:
+        #     raise HTTPException(status_code=400, detail="Proyecto inválido")
+        # if observacion_service.has_unresolved_observations(proyecto.id, db):
+        #     raise HTTPException(status_code=400, detail="Proyecto inválido")
+        bonita = get_bonita_client()
+
+        activities = wait_for_any_activity(bonita, proyecto.idBonita)
+        if not activities:
+            raise HTTPException(status_code=409, detail="No hay actividades disponibles en Bonita")
+
+        task1 = activities[0]["id"]
+
+        try:
+            bonita.assign_task(task_id=task1, user_id=1)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error asignando tarea Bonita: {e}")
+
+        try:
+            bonita.complete_activity(task_id=task1)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error completando actividad Bonita: {e}")
+ 
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+
+        pdf.setFont("Helvetica-Bold", 16)
+        pdf.drawString(100, 800, f"Reporte del Proyecto #{proyecto.id}")
+
+        pdf.setFont("Helvetica", 12)
+        pdf.drawString(100, 770, f"Título: {proyecto.titulo}")
+        pdf.drawString(100, 750, f"Descripción: {proyecto.descripcion}")
+        pdf.drawString(100, 730, f"Fecha de creación: {proyecto.fecha_creacion}")
+        pdf.drawString(100, 710, f"Estado final: Terminado")
+        y = 710 - 30
+
+        # Etapas
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(100, y, "Etapas:")
+        y -= 20
+
+        pdf.setFont("Helvetica", 12)
+        pdf.drawString(100, y, f"Información de las {proyecto.cant_etapas} etapa/s:")
+        y -= 20
+
+        url = (
+            "https://projectplanning-cloud.onrender.com/etapas/proyecto/"
+            + str(proyecto.id)
+            + "/todas"
+        )
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+        etapas = []
+        try:
+            resp = requests.get(url, headers=headers, timeout=10)
+            resp.raise_for_status()
+            etapas = resp.json()
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(
+                status_code=503, detail=f"Error consiguiendo las etapas del cloud: {e}"
+            )
+        for etapa in etapas:
+            pdf.drawString(120, y, f"- {etapa['titulo']}: {etapa['descripcion']}")
+            y -= 20
+            pdf.drawString(120, y, f"Fecha de inicio: - {etapa['fecha_inicio']} - Fecha de fin: {etapa['fecha_fin']}")
+            if y < 50:
+                pdf.showPage()
+                y = 800
+
+        # Observaciones
+        y -= 30
+
+        if y < 80:
+            pdf.showPage()
+            y = 800
+
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(100, y, "Observaciones:")
+        y -= 20
+
+        pdf.setFont("Helvetica", 12)
+
+        observaciones = observacion_service.get_all_observations(proyecto.id, db)
+
+        if not observaciones:
+            pdf.drawString(120, y, "No hay observaciones registradas.")
+            y -= 20
+        else:
+            for obs in observaciones:
+                pdf.drawString(120, y, f"- {obs.descripcion} ({obs.resuelto})")
+                y -= 20
+
+                if y < 50:
+                    pdf.showPage()
+                    y = 800
+
+        pdf.save()
+        buffer.seek(0)
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=proyecto_{proyecto.id}.pdf"
+            },
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
