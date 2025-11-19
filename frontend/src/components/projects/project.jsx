@@ -130,9 +130,50 @@ const Project = () => {
         }
     }
 
-    const finalizarProyecto = () => {
+    const finalizarProyecto = async () => {
+        const bodyJSON = {
+            project_id: projectId,
+        };
 
-    }
+        try {
+            const response = await fetch(`http://localhost:8001/proyectos/terminar_proyecto`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(bodyJSON),
+            });
+
+            if (!response.ok) {
+                toast.error("Error al finalizar el proyecto", {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                });
+                return;
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `proyecto_${projectId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("El proyecto ha sido finalizado con éxito!", {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+            getProject();
+        } catch (error) {
+            toast.error(`Error al finalizar el proyecto: ${error}`, {
+                position: "bottom-right",
+                autoClose: 3000,
+            });
+        }
+    };
 
     const resolveObservation = async (observationId) => {
         try {
@@ -202,7 +243,7 @@ const Project = () => {
                 </div>
                 <div className="flex flex-col justify-between">
                     {project && <CircularProgress percentage={percentage} strokeColor={strokeColor} />}
-                    {project && buttonTransition && (
+                    {project && buttonTransition && project.estado !== "terminado" && (
                         <BlueButton text={buttonText} classAttr={"mr-8"} onClickFunction={buttonFunction} />
                     )}
                 </div>

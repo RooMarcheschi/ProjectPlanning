@@ -11,6 +11,7 @@ const AllProjects = () => {
 
     useEffect(() => {
         hasPermissions();
+
     }, []);
 
     const hasPermissions = async () => {
@@ -26,6 +27,7 @@ const AllProjects = () => {
             if (data.success && data.permissions) {
                 setPermissions(true);
                 getProjects();
+                createCase();
             } else {
                 window.location.href = "/";
             }
@@ -60,6 +62,33 @@ const AllProjects = () => {
                 autoClose: 3000,
             });
             setTimeout(() => window.location.href = "/", 3000);
+        }
+    }
+
+    const createCase = async () => {
+        try {
+            const response = await fetch(`http://localhost:8001/observaciones/generar_case`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                localStorage.setItem("caseId", data.case_id);
+            } else {
+                toast.error(`Error connecting with Bonita: ${data.detail}`, {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                })
+                // window.location.href = "/myProjects";
+            }
+        } catch (error) {
+            toast.error(`Error connecting with Bonita: ${error}`, {
+                position: "bottom-right",
+                autoClose: 3000,
+            })
+            // window.location.href = "/myProjects";
         }
     }
 

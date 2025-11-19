@@ -35,7 +35,7 @@ const EtapaInfo = ({ etapa }) => {
                     <div>
                         <p>Descripción: {etapa.descripcion}</p>
                         <p>Estado: {etapa.estado[0].toUpperCase() + etapa.estado.slice(1)}</p>
-                        {etapa.estado == "cubierta" || etapa.estado == "ejecutandose" && (
+                        {(etapa.estado == "cubierta" || etapa.estado == "ejecutandose" || etapa.estado == "terminada") && (
                             <p> Cubierta por: {etapa.ong_comprometida_name}</p>
                         )}
                         {etapa.estado == "ejecutandose" && (

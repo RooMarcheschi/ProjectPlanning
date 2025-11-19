@@ -13,6 +13,7 @@ const ProjectInfo = ({ project }) => {
     const [properties, setProperties] = useState(propertiesClosed);
     const id = localStorage.getItem("id");
     const token = localStorage.getItem("token");
+    const caseId = localStorage.getItem("caseId");
 
     const backgrounds = {
         "publicado": "bg-gray-300",
@@ -46,6 +47,7 @@ const ProjectInfo = ({ project }) => {
             "proyecto_id": project.id,
             "observante_id": id,
             "descripcion": text,
+            "case_id": caseId,
         }
         try {
             const response = await fetch("http://localhost:8001/observaciones/realizar_observacion", {
@@ -65,7 +67,7 @@ const ProjectInfo = ({ project }) => {
                 });
             }
             else {
-                toast.error(`Error al enviar la observación: ${data.detail.message}`, {
+                toast.error(`Error al enviar la observación: ${JSON.stringify(data.detail)}`, {
                     position: "bottom-right",
                     autoClose: 3000,
                 });

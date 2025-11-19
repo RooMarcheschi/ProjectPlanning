@@ -12,10 +12,8 @@ def crear_observacion(db: Session, nueva_observacion: Observacion):
     db.refresh(nueva_observacion)
     return nueva_observacion
 
-
 def obtener_observaciones(db: Session):
     return db.query(Observacion).all()
-
 
 def eliminar_observacion(db: Session, observacion_id: int):
     observacion = db.query(Observacion).filter(Observacion.id == observacion_id).first()
@@ -24,10 +22,8 @@ def eliminar_observacion(db: Session, observacion_id: int):
         db.commit()
     return observacion
 
-
 def get_observacion_by_id(id: int, db: Session):
     return db.query(Observacion).filter(Observacion.id == id).first()
-
 
 def get_observaciones_por_proyecto(id_proyecto: int, db: Session):
     observaciones = (
@@ -50,6 +46,9 @@ def get_observaciones_por_proyecto(id_proyecto: int, db: Session):
         for obs in observaciones
     ]
 
+def get_all_observations(id_proyecto, db: Session):
+    return db.query(Observacion).filter(Observacion.id_proyecto == id_proyecto).all()
+
 def resolve_observation(observation_id: int, db: Session):
     observation = get_observacion_by_id(observation_id, db)
     if not observation:
@@ -57,3 +56,7 @@ def resolve_observation(observation_id: int, db: Session):
     observation.resuelto = True # type: ignore
     db.commit()
     db.refresh(observation)
+
+def has_unresolved_observations(id_proyecto, db):
+    obs = db.query(Observacion).filter(Observacion.id_proyecto == id_proyecto, Observacion.resuelto == False).first()
+    return obs is not None

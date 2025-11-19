@@ -1,24 +1,30 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, status
-import json
-from sqlalchemy.orm import Session
-from services import proyecto_service, user_service
-from models.proyecto import Proyecto, EstadoProyecto
-from models.etapa import Etapa, EstadoEtapa
-from fastapi.security import OAuth2PasswordBearer
+from config.database import get_db
 from core.security import decode_token
 from datetime import date
-from config.database import get_db
 from dependencies import (
     get_bonita_client,
     debug,
     wait_for_any_activity,
     wait_for_ready_activity,
 )
-import time
+from fastapi import APIRouter, Body, Depends, HTTPException, Response
+from fastapi.security import OAuth2PasswordBearer
+from io import BytesIO
+import json
+from models.proyecto import Proyecto, EstadoProyecto
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from services import proyecto_service, observacion_service
+from reportlab.pdfgen import canvas
+import requests
 
 router = APIRouter(prefix="/proyectos", tags=["Proyectos"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+
+class ProjectID(BaseModel):
+    project_id: int
 
 
 @router.post("/crearProyecto")
@@ -161,7 +167,7 @@ def crear_proyecto(
         return {"success": True, "message": "Project submitted successfully"}
 
     except Exception as e:
-        bonita.debug("ERROR CAPTURADO:", str(e))
+        debug("ERROR CAPTURADO:", str(e))
         raise HTTPException(status_code=500, detail={"message": str(e)})
 
 
@@ -236,22 +242,128 @@ def ejecutar_proyecto(
 
         return {"success": True, "message": "Project executed successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail={"message": str(e)})    
+        raise HTTPException(status_code=500, detail={"message": str(e)})
 
-@router.get("/terminar_proyecto/{project_id}")
-def terminar_proyecto(project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+
+@router.post("/terminar_proyecto")
+def terminar_proyecto(
+    data: ProjectID, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+
     try:
-        proyecto = proyecto_service.terminar_proyecto(db, project_id)
-        
-        #avisar a bonita que se termino el proyecto
+        proyecto = proyecto_service.terminar_proyecto(db, data.project_id)
+        if not proyecto:
+            raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+        # if str(proyecto.estado) != EstadoProyecto.ejecutandose:
+        #     raise HTTPException(status_code=400, detail="Proyecto inválido")
+        # if observacion_service.has_unresolved_observations(proyecto.id, db):
+        #     raise HTTPException(status_code=400, detail="Proyecto inválido")
         bonita = get_bonita_client()
+
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
+        if not activities:
+            raise HTTPException(status_code=409, detail="No hay actividades disponibles en Bonita")
+
         task1 = activities[0]["id"]
-        bonita.assign_task(task_id=task1, user_id=1)
-        bonita.complete_activity(task_id=task1)
-        return {"succes": True, "projects": proyecto}
+
+        try:
+            bonita.assign_task(task_id=task1, user_id=1)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error asignando tarea Bonita: {e}")
+
+        try:
+            bonita.complete_activity(task_id=task1)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error completando actividad Bonita: {e}")
+ 
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer)
+
+        pdf.setFont("Helvetica-Bold", 16)
+        pdf.drawString(100, 800, f"Reporte del Proyecto #{proyecto.id}")
+
+        pdf.setFont("Helvetica", 12)
+        pdf.drawString(100, 770, f"Título: {proyecto.titulo}")
+        pdf.drawString(100, 750, f"Descripción: {proyecto.descripcion}")
+        pdf.drawString(100, 730, f"Fecha de creación: {proyecto.fecha_creacion}")
+        pdf.drawString(100, 710, f"Estado final: Terminado")
+        y = 710 - 30
+
+        # Etapas
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(100, y, "Etapas:")
+        y -= 20
+
+        pdf.setFont("Helvetica", 12)
+        pdf.drawString(100, y, f"Información de las {proyecto.cant_etapas} etapa/s:")
+        y -= 20
+
+        url = (
+            "https://projectplanning-cloud.onrender.com/etapas/proyecto/"
+            + str(proyecto.id)
+            + "/todas"
+        )
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+        etapas = []
+        try:
+            resp = requests.get(url, headers=headers, timeout=10)
+            resp.raise_for_status()
+            etapas = resp.json()
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(
+                status_code=503, detail=f"Error consiguiendo las etapas del cloud: {e}"
+            )
+        for etapa in etapas:
+            pdf.drawString(120, y, f"- {etapa['titulo']}: {etapa['descripcion']}")
+            y -= 20
+            pdf.drawString(120, y, f"Fecha de inicio: - {etapa['fecha_inicio']} - Fecha de fin: {etapa['fecha_fin']}")
+            if y < 50:
+                pdf.showPage()
+                y = 800
+
+        # Observaciones
+        y -= 30
+
+        if y < 80:
+            pdf.showPage()
+            y = 800
+
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(100, y, "Observaciones:")
+        y -= 20
+
+        pdf.setFont("Helvetica", 12)
+
+        observaciones = observacion_service.get_all_observations(proyecto.id, db)
+
+        if not observaciones:
+            pdf.drawString(120, y, "No hay observaciones registradas.")
+            y -= 20
+        else:
+            for obs in observaciones:
+                pdf.drawString(120, y, f"- {obs.descripcion} ({obs.resuelto})")
+                y -= 20
+
+                if y < 50:
+                    pdf.showPage()
+                    y = 800
+
+        pdf.save()
+        buffer.seek(0)
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=proyecto_{proyecto.id}.pdf"
+            },
+        )
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
