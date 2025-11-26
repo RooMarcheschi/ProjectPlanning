@@ -58,3 +58,6 @@ def resolve_observation(observation_id: int, db: Session):
 def has_unresolved_observations(id_proyecto, db):
     obs = db.query(Observacion).filter(Observacion.id_proyecto == id_proyecto, Observacion.resuelto == False).first()
     return obs is not None
+
+def get_observation_by_caseid(case_id: Any, db: Session):
+    return db.query(Observacion).filter(Observacion.case_id == case_id).first()

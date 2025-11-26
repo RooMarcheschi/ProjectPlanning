@@ -204,3 +204,50 @@ def patch_resolve_observation(
         return {"success": True, "message": "Observation resolved" }
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": str(e)})
+
+@router.post("/close_case")
+def close_case(
+    case_id: int = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail={"message": "Invalid token"})
+
+    try:
+        obs = observacion_service.get_observation_by_caseid(case_id, db)
+        if obs:
+            raise HTTPException(
+                status_code=400,
+                detail={"message": "No se puede cerrar el case, hay observaciones pendientes"},
+            )
+        bonita = get_bonita_client()
+
+        hayObservaciones = bonita.get_variable_by_case(
+            case_id=case_id, variable_name="hayObservaciones"
+        )
+
+        print("Valor de hayObservaciones:", hayObservaciones["value"])
+
+        if hayObservaciones["value"] is True:
+            raise HTTPException(
+                status_code=400,
+                detail={"message": "No se puede cerrar el case, hay observaciones pendientes"},
+            )
+
+        activities = wait_for_any_activity(bonita, case_id)
+        task1 = activities[0]["id"]
+        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.complete_activity(task_id=task1)
+
+        return {"success": True, "message": "Case closed successfully"}
+
+    except HTTPException:
+        raise   # ✅ respeta tus errores HTTP reales
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"message": f"Error interno al cerrar el case: {str(e)}"},
+        )

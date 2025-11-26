@@ -16,6 +16,35 @@ const AllProjects = () => {
             hasPermissions();
         }
     }, []);
+    useEffect(() => {
+    const closeCase = () => { 
+        // IF se realizo una observacion no se ejecuta esto
+        const caseId = localStorage.getItem("caseId");
+        const token = localStorage.getItem("token");
+
+        if (!caseId || !token) return;
+
+        fetch("http://localhost:8001/observaciones/close_case", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                case_id: Number(caseId)
+            }),
+            keepalive: true
+        }).catch(() => { });
+    };
+
+    window.addEventListener("beforeunload", closeCase);
+
+    return () => {
+        closeCase(); // se va de /allProjects
+        window.removeEventListener("beforeunload", closeCase);
+    };
+}, []);
+
     const hasPermissions = async () => {
         try {
             const response = await fetch("http://localhost:8001/auth/validateUser", {
