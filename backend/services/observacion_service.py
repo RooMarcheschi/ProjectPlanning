@@ -1,10 +1,7 @@
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
 from models.user import User
 from models.observacion import Observacion
-from services.user_service import obtener_usuario_por_id
-from datetime import date
-
+from sqlalchemy.orm import Session
+from typing import Any
 
 def crear_observacion(db: Session, nueva_observacion: Observacion):
     db.add(nueva_observacion)
@@ -25,7 +22,7 @@ def eliminar_observacion(db: Session, observacion_id: int):
 def get_observacion_by_id(id: int, db: Session):
     return db.query(Observacion).filter(Observacion.id == id).first()
 
-def get_observaciones_por_proyecto(id_proyecto: int, db: Session):
+def get_observaciones_por_proyecto(id_proyecto: Any, db: Session):
     observaciones = (
         db.query(Observacion)
         .join(User, Observacion.id_observante == User.id)
