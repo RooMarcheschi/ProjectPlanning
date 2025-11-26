@@ -18,8 +18,7 @@ const ObservationsPanel = ({ observations, onResolve }) => {
                     </p>
 
                     <ObservationBubble
-                        observacion={obs.descripcion}
-                        fecha={obs.fecha_creacion}
+                        observacion={obs}
                         onResolve={() => onResolve(obs.id)}
                         id={obs.id}
                     />

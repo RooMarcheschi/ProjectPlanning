@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import ProjectInfo from "./projectInfo";
 import LinkButton from "../buttons/linkButton";
@@ -8,10 +8,13 @@ const AllProjects = () => {
     const [projects, setProjects] = useState([]);
     const token = localStorage.getItem("token");
     const id = localStorage.getItem("id");
-
+    const executed = useRef(false);
+    
     useEffect(() => {
-        hasPermissions();
-
+        if (!executed) {
+            executed.current = true;
+            hasPermissions();
+        }
     }, []);
 
     const hasPermissions = async () => {

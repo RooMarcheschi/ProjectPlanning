@@ -6,7 +6,7 @@ from dependencies import (
 )
 from config.database import get_db
 from core.security import decode_token
-from datetime import date
+from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.security import OAuth2PasswordBearer
 from models.observacion import Observacion
@@ -108,6 +108,7 @@ def realizar_observacion(
         id_observante=obs.observante_id,
         descripcion=obs.descripcion,
         fecha_creacion=date.today(),
+        fecha_resolucion = date.today()  + timedelta(days=5),
         case_id=case_id,
     )
     try:
