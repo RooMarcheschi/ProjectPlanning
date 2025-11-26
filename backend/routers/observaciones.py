@@ -130,7 +130,7 @@ def realizar_observacion(
             bonita.assign_task(task_id=task1, user_id=1)
             bonita.complete_activity(task_id=task1)
             last_id = task1
-            for i in range(2):
+            for i in range(1):
                 act = wait_for_ready_activity(bonita, case_id, previous_id=last_id)
                 bonita.assign_task(task_id=act["id"], user_id=2)
                 bonita.complete_activity(task_id=act["id"])
