@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import ProjectInfo from "./projectInfo";
 import LinkButton from "../buttons/linkButton";
@@ -8,11 +8,14 @@ const AllProjects = () => {
     const [projects, setProjects] = useState([]);
     const token = localStorage.getItem("token");
     const id = localStorage.getItem("id");
+    const initialized = useRef(false);
 
     useEffect(() => {
-        hasPermissions();
+        if (!initialized.current) {
+            initialized.current = true;
+            hasPermissions();
+        }
     }, []);
-
     const hasPermissions = async () => {
         try {
             const response = await fetch("http://localhost:8001/auth/validateUser", {
@@ -26,7 +29,7 @@ const AllProjects = () => {
             if (data.success && data.permissions) {
                 setPermissions(true);
                 getProjects();
-                createCase();
+                createCase(); 
             } else {
                 window.location.href = "/";
             }
