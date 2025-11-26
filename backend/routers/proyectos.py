@@ -349,17 +349,21 @@ def terminar_proyecto(
             pdf.drawString(
                 120, y, f"- Etapa {index+1}: {etapa['titulo']}: {etapa['descripcion']}"
             )
-            y -= 20
+            y-=20
             pdf.drawString(
-                120,
-                y,
-                f"Fecha de inicio: - {etapa['fecha_inicio']}",
+                120, y, f"- Descripción: {etapa['descripcion']}"
             )
             y -= 20
             pdf.drawString(
                 120,
                 y,
-                f"Fecha de fin: - {etapa['fecha_fin']}",
+                f"Fecha de inicio: {etapa['fecha_inicio']}",
+            )
+            y -= 20
+            pdf.drawString(
+                120,
+                y,
+                f"Fecha de fin: {etapa['fecha_fin']}",
             )
             y-=10
             if y < 50:
@@ -389,7 +393,7 @@ def terminar_proyecto(
                 pdf.drawString(
                     120,
                     y,
-                    f"- {obs.descripcion} : ({f"Resuelta ✅" if bool(obs.resuelto) else "Sin resolver ❌"})",
+                    f"- {obs.descripcion} : {f"Resuelta" if bool(obs.resuelto) else "Sin resolver"}",
                 )
                 y -= 20
 
