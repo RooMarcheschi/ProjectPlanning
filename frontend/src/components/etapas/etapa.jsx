@@ -58,9 +58,13 @@ const Etapa = ({ etapa, onEtapaChange }) => {
                     <BlueButton text="Comprometer" onClickFunction={() => setShowButtonsRow(true)} />
                 </div>
             ) : (
-                <div className="flex flex-row px-4 py-2 items-center justify-between">
-                    <RedButton text={"Cancelar"} onClickFunction={() => setShowButtonsRow(false)} />
-                    <GreenButton text={"Generar compromiso"} onClickFunction={() => generarCompromiso()} />
+                <div className="flex flex-wrap gap-2 mt-3 items-center justify-between">
+                    <div className="flex-grow-0">
+                        <RedButton text={"Cancelar"} onClickFunction={() => setShowButtonsRow(false)} />
+                    </div>
+                    <div className="flex-grow-0">
+                        <GreenButton text={"Generar compromiso"} onClickFunction={() => generarCompromiso()} />
+                    </div>
                 </div>
             )}
         </div>

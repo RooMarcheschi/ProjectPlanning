@@ -261,7 +261,7 @@ const Project = () => {
 
                 {observations && (
                     <ObservationsPanel observations={observations}
-                        onResolve={resolveObservation} />
+                        onResolve={resolveObservation} estado={project?.estado}/>
                 )}
             </div>
         </div>

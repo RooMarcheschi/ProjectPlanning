@@ -39,6 +39,7 @@ def get_observaciones_por_proyecto(id_proyecto: Any, db: Session):
             "id_observante": obs.id_observante,
             "resuelto": obs.resuelto,
             "nombre_observante": obs.observante.username,
+            "fecha_resolucion": obs.fecha_resolucion,
         }
         for obs in observaciones
     ]

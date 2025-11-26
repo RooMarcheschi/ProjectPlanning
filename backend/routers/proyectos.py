@@ -184,6 +184,7 @@ def get_projects(
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": str(e)})
 
+
 @router.get("/tengo_observaciones")
 def tengo_observaciones(
     id_ong: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
@@ -309,14 +310,13 @@ def terminar_proyecto(
         pdf = canvas.Canvas(buffer)
 
         pdf.setFont("Helvetica-Bold", 16)
-        pdf.drawString(100, 800, f"Reporte del Proyecto #{proyecto.id}")
+        pdf.drawString(100, 800, f"Reporte del Proyecto {proyecto.titulo}")
 
         pdf.setFont("Helvetica", 12)
-        pdf.drawString(100, 770, f"Título: {proyecto.titulo}")
-        pdf.drawString(100, 750, f"Descripción: {proyecto.descripcion}")
-        pdf.drawString(100, 730, f"Fecha de creación: {proyecto.fecha_creacion}")
-        pdf.drawString(100, 710, f"Estado final: Terminado")
-        y = 710 - 30
+        pdf.drawString(100, 770, f"Descripción: {proyecto.descripcion}")
+        pdf.drawString(100, 750, f"Fecha de creación: {proyecto.fecha_creacion}")
+        pdf.drawString(100, 730, f"Estado final: Terminado")
+        y = 730 - 20
 
         # Etapas
         pdf.setFont("Helvetica-Bold", 14)
@@ -345,14 +345,23 @@ def terminar_proyecto(
             raise HTTPException(
                 status_code=503, detail=f"Error consiguiendo las etapas del cloud: {e}"
             )
-        for etapa in etapas:
-            pdf.drawString(120, y, f"- {etapa['titulo']}: {etapa['descripcion']}")
+        for index, etapa in enumerate(etapas):
+            pdf.drawString(
+                120, y, f"- Etapa {index+1}: {etapa['titulo']}: {etapa['descripcion']}"
+            )
             y -= 20
             pdf.drawString(
                 120,
                 y,
-                f"Fecha de inicio: - {etapa['fecha_inicio']} - Fecha de fin: {etapa['fecha_fin']}",
+                f"Fecha de inicio: - {etapa['fecha_inicio']}",
             )
+            y -= 20
+            pdf.drawString(
+                120,
+                y,
+                f"Fecha de fin: - {etapa['fecha_fin']}",
+            )
+            y-=10
             if y < 50:
                 pdf.showPage()
                 y = 800
@@ -377,7 +386,11 @@ def terminar_proyecto(
             y -= 20
         else:
             for obs in observaciones:
-                pdf.drawString(120, y, f"- {obs.descripcion} ({obs.resuelto})")
+                pdf.drawString(
+                    120,
+                    y,
+                    f"- {obs.descripcion} : ({f"Resuelta ✅" if bool(obs.resuelto) else "Sin resolver ❌"})",
+                )
                 y -= 20
 
                 if y < 50:
