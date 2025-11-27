@@ -78,7 +78,7 @@ const LandingPage = () => {
                     {permissions && (
                         <>
                             <Rectangle title="Crear observaciones" redirect="/allProjects" icon="pencil" />
-                            <Rectangle title="Ver reportes" redirect="/" icon="report" />
+                            <Rectangle title="Ver reportes" redirect="/consultas" icon="report" />
                         </>
                     )}
                 </div>
