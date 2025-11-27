@@ -1,7 +1,7 @@
 import AllEtapas from "../etapas/allEtapas";
 import Rectangle from "../landingPage/rectangle";
 import { useState, useEffect } from "react";
-import { useEtapas } from "../../contexts/etapasContext"; // Importar contexto
+import { useEtapas } from "../../contexts/etapasContext"; 
 import { toast } from "react-toastify";
 
 const LandingPage = () => {
@@ -50,13 +50,16 @@ const LandingPage = () => {
 
                 <div className={`w-2/3 grid ${permissions ? "grid-rows-3 grid-cols-2" : "grid-rows-3 grid-cols-1"} gap-6 p-6`}>
                     <Rectangle title="Crear proyecto" redirect={"/cargarProyecto"} />
-                    <Rectangle title="Mis proyectos" redirect={"/myProjects"} />
-                    <Rectangle title="Mis compromisos" redirect={"/misCompromisos"} icon={"commitments"}/>
                     {permissions && (
-                        <>
-                            <Rectangle title="Crear observaciones" redirect="/allProjects" icon="pencil" />
-                            <Rectangle title="Ver reportes" redirect="/" icon="report" />
-                        </>
+                        <Rectangle title="Crear observaciones" redirect="/allProjects" icon="pencil" />
+                    )}
+                    <Rectangle title="Mis proyectos" redirect={"/myProjects"} />
+                    {permissions && (
+                        <Rectangle title="Mis observaciones" redirect="/misObservaciones" icon="observations" />
+                    )}
+                    <Rectangle title="Mis compromisos" redirect={"/misCompromisos"} icon={"commitments"} />
+                    {permissions && (
+                        <Rectangle title="Ver reportes" redirect="/" icon="report" />
                     )}
                 </div>
             </div>

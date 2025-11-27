@@ -66,7 +66,7 @@ const ProjectInfo = ({ project }) => {
                     autoClose: 2000,
                 });
                 setTimeout(() => 
-                    window.location.href = "/"
+                    window.location.href = "/misObservaciones"
                 , 2000)
             }
             else {

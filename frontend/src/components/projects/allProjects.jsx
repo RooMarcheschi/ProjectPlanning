@@ -29,7 +29,7 @@ const AllProjects = () => {
             if (data.success && data.permissions) {
                 setPermissions(true);
                 getProjects();
-                createCase(); 
+                createCase();
             } else {
                 window.location.href = "/";
             }
@@ -105,6 +105,14 @@ const AllProjects = () => {
                     </div>
                     <LinkButton href={"/"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"} />
                     <h1 className="text-2xl font-bold text-gray-800 m-2"> Proyectos:</h1>
+                    {projects.length == 0 && (
+                        <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex flex-col justify-center items-center w-full">
+                            <p className="text-gray-500 flex justify-center items-center mt-10">
+                                No hay proyectos activos en este momento.
+                            </p>
+                            <LinkButton href={"/"} text={"Volver"} classAttr={"mt-4"} />
+                        </div>
+                    )}
                     {projects.map((project) => (
                         <ProjectInfo project={project} key={project.id} />
                     ))}

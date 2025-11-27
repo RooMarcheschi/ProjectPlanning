@@ -11,6 +11,8 @@ const Header = () => {
     const [openNotifications, setOpenNotifications] = useState(false);
     const { hasEtapas, setHasEtapas, hasObservaciones, setHasObservaciones } = useEtapas();
     const token = localStorage.getItem("token");
+    const permissionsStorage = localStorage.getItem("permissions");
+    const permissions = true ? permissionsStorage == "true" : false;
 
     return (
         <header className="flex items-center justify-between bg-blue-500 p-10 relative shadow-lg">
@@ -48,23 +50,9 @@ const Header = () => {
                             <div className="absolute right-0 mt-12 w-48 bg-white border border-gray-300 rounded shadow-lg z-10">
                                 <ConfigMenu text="Mis proyectos" redirect={"/myProjects"} />
                                 <ConfigMenu text="Mis compromisos" redirect={"/misCompromisos"} />
-                                {/*Endpoint para ver mis contribuciones: https://projectplanning-cloud.onrender.com/docs#/Compromisos/get_compromisos_by_usuario_compromisos_usuario_get 
-                                Tenes q mandar el jwt. nada mas
-                                     Estilo de respuesta:
-                                     [
-                                        {
-                                            "id_etapa": 4,
-                                            "descripcion": "Compromiso generado para la etapa 4",
-                                            "id_contribuyente": 1,
-                                            "id": 4,
-                                            "estado": "comprometido",
-                                            "fecha_creacion": "2025-11-13",
-                                            "titulo_etapa": "asd",
-                                            "descripcion_etapa": "asd"
-                                        }
-                                    ]
-                                */}
-                                {/* opcion para Mis observaciones */}
+                                {permissions && (
+                                    <ConfigMenu text="Mis observaciones" redirect={"/misObservaciones"} />
+                                )}
                                 <ConfigMenu text="Cerrar sesión" onClickFunction={() => {
                                     localStorage.clear();
                                     window.location.href = "/login";
@@ -76,10 +64,10 @@ const Header = () => {
                             <div className="absolute right-12 mt-12 w-65 bg-white border border-gray-300 rounded shadow-lg z-10 max-h-64 overflow-y-visible overflow-x-hidden">
                                 <span className="block px-2 py-2 text-gray-800 bg-neutral-200">Menú de notificaciones:</span>
                                 {hasEtapas && (
-                                    <NotificationMenu longText="Hay etapas nuevas en las que podés comprometerte." hrefURL={"/"}/>
+                                    <NotificationMenu longText="Hay etapas nuevas en las que podés comprometerte." hrefURL={"/"} />
                                 )}
                                 {hasObservaciones && (
-                                    <NotificationMenu longText="Hay observaciones sin resolver en tus proyectos." hrefURL={"/myProjects"}/>
+                                    <NotificationMenu longText="Hay observaciones sin resolver en tus proyectos." hrefURL={"/myProjects"} />
                                 )}
                                 {(!hasEtapas && !hasObservaciones) && (
                                     <span className="block px-2 py-2 text-gray-800">No hay notificaciones nuevas</span>

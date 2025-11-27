@@ -383,7 +383,7 @@ def terminar_proyecto(
 
         pdf.setFont("Helvetica", 12)
 
-        observaciones = observacion_service.get_all_observations(proyecto.id, db)
+        observaciones = observacion_service.get_observaciones_por_proyecto(proyecto.id, db)
 
         if not observaciones:
             pdf.drawString(120, y, "No hay observaciones registradas.")
@@ -393,7 +393,7 @@ def terminar_proyecto(
                 pdf.drawString(
                     120,
                     y,
-                    f"- {obs.descripcion} : {f"Resuelta" if bool(obs.resuelto) else "Sin resolver"}",
+                    f"{obs["nombre_observante"]} observó: {obs["descripcion"]} -> {f"Resuelta" if bool(obs["resuelto"]) else "Sin resolver"}",
                 )
                 y -= 20
 
