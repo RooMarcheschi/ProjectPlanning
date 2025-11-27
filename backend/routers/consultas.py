@@ -10,8 +10,6 @@ from services import consultas_service, user_service
 
 router = APIRouter(prefix="/consultas", tags=["Consultas"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-CLOUD_URL = "https://projectplanning-cloud-yxzf.onrender.com/"
-
 
 @router.get("/")
 def get_consultas(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
@@ -28,18 +26,20 @@ def get_consultas(db: Session = Depends(get_db), token: str = Depends(oauth2_sch
 
     resultado_consultas = {
         "date": date.today(), #devuelve fecha de cuando se hico la consulta
-        "get_project_status_stats": consultas_service.get_project_status_stats(db=db), #devuelve un dicc con % de proyectos x estado
+        "get_project_status_stats": consultas_service.get_project_status_stats(db=db), #devuelve un dicc con % de proyectos x estado --> ver como hago para que si hay 0% se devuelva en 0 el estado
         "get_users_stats": consultas_service.get_users_stats(db=db), #devuelve un dicc con listas de users(ong) que publicaron proyectos y cuales no publicaron proyectos
-        "get_stages_status_stats": get_cloud_stages_stats(token=token) #devuelve un dicc con % de etapas x estado
+        "get_stages_status_stats": get_cloud_stages_stats(token=token) #devuelve un dicc con % de etapas x estado (lo consulta al cloud)
     }
     return resultado_consultas
 
 
-def get_cloud_stages_stats(token):
+def get_cloud_stages_stats(token: str = Depends(oauth2_scheme)):
     try:
         response = requests.get(
-            f"{CLOUD_URL}/consultas/stages_stats",
-            headers={"Authorazation": f"Bearer {token}"}
+            "https://projectplanning-cloud-yxzf.onrender.com/consultas/stages_stats"
+            #"http://host.docker.internal:8000/consultas/stages_stats"
+            #"http://localhost:8000/consultas/stages_stats",
+            #headers={"Authorization": f"Bearer {token}"}
         )
         return response.json() if response.ok else {"error": response.text}
     except Exception as e:

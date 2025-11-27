@@ -1,13 +1,18 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from models.proyecto import Proyecto
+from models.proyecto import Proyecto, EstadoProyecto
 from models.user import User
 from datetime import date
 
 
 def get_project_status_stats(db: Session):
     total = db.query(func.count(Proyecto.id)).scalar()
-
+    
+    result = {
+        estado.value: 0.0
+        for estado in EstadoProyecto
+    }
+    
     if total == 0: return {} #no hay proyectos
 
     query = (
@@ -19,10 +24,10 @@ def get_project_status_stats(db: Session):
         .all()
     )
 
-    return{
-        estado: round(percentage, 2)
-        for estado, percentage in query
-    }
+    for estado, percentage in query:
+        result[estado.value] = round(percentage, 2)
+
+    return result
 
 def get_users_stats(db: Session): #Cuales son los users que publicaron proyectos y cuales no
     users_with_projects = (
