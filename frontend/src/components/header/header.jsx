@@ -54,8 +54,8 @@ const Header = () => {
                                     <ConfigMenu text="Mis observaciones" redirect={"/misObservaciones"} />
                                 )}
                                 <ConfigMenu text="Cerrar sesión" onClickFunction={() => {
-                                    localStorage.clear();
                                     window.location.href = "/login";
+                                    localStorage.clear();
                                 }} />
                             </div>
                         )}
