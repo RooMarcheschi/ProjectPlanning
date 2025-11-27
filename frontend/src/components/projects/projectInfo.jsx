@@ -61,10 +61,14 @@ const ProjectInfo = ({ project }) => {
 
             const data = await response.json();
             if (data.success) {
-                toast.success("Observación enviada correctamnte!", {
+                localStorage.setItem("observationMade", "true");
+                toast.success("Observación enviada correctamente!", {
                     position: "bottom-right",
-                    autoClose: 3000,
+                    autoClose: 2000,
                 });
+                setTimeout(() => 
+                    window.location.href = "/misObservaciones"
+                , 2000)
             }
             else {
                 toast.error(`Error al enviar la observación: ${JSON.stringify(data.detail)}`, {

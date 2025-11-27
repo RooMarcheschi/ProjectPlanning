@@ -1,3 +1,4 @@
+from services import user_service
 from config.database import get_db
 from core.security import decode_token
 from datetime import date
@@ -15,6 +16,7 @@ from models.proyecto import Proyecto, EstadoProyecto
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from services import proyecto_service, observacion_service
+from reportlab.lib import colors 
 from reportlab.pdfgen import canvas
 import requests
 
@@ -36,6 +38,7 @@ def crear_proyecto(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+    user = user_service.obtener_usuario_por_username(db, username)
     project_name = proyecto["projectName"]
     project_desc = proyecto["projectDesc"]
     amount_stages = proyecto["stagesAmount"]
@@ -94,7 +97,7 @@ def crear_proyecto(
             )
 
     try:
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
         process_id = bonita.get_process_id_by_name("Proyecto")
 
         debug("Process ID:", process_id)
@@ -131,7 +134,7 @@ def crear_proyecto(
         task1 = activities[0]["id"]
         debug("Primera actividad:", activities[0])
 
-        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.assign_task(task_id=task1, user_id=user.id)
         bonita.complete_activity(task_id=task1)
 
         etapas = []
@@ -160,7 +163,7 @@ def crear_proyecto(
             debug(f"\n--- Ciclo actividad {i+1} ---")
             act = wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
 
-            bonita.assign_task(task_id=act["id"], user_id=2)
+            bonita.assign_task(task_id=act["id"], user_id=user.id)
             bonita.complete_activity(task_id=act["id"])
             last_id = act["id"]
 
@@ -183,6 +186,27 @@ def get_projects(
         return {"success": True, "projects": projects}
     except Exception as e:
         raise HTTPException(status_code=500, detail={"message": str(e)})
+
+
+@router.get("/tengo_observaciones")
+def tengo_observaciones(
+    id_ong: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        all_my_projects = proyecto_service.obtener_proyectos_para_ong(db, id_ong)
+        for project in all_my_projects:
+            has_observations = observacion_service.get_observaciones_por_proyecto(
+                project.id, db, True
+            )
+            if has_observations:
+                return {"success": True, "has_observations": True}
+
+        return {"success": True, "has_observations": False}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{project_id}")
@@ -223,6 +247,9 @@ def ejecutar_proyecto(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+    user = user_service.obtener_usuario_por_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
     try:
         proyecto = proyecto_service.obtener_proyecto_por_id(db, project_id)
         if not proyecto:
@@ -232,12 +259,12 @@ def ejecutar_proyecto(
             db, project_id, EstadoProyecto.ejecutandose
         )
         # Ejecuar tarea de bonita
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
         task1 = activities[0]["id"]
         debug("Primera actividad:", activities[0])
 
-        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.assign_task(task_id=task1, user_id=user.id)
         bonita.complete_activity(task_id=task1)
 
         return {"success": True, "message": "Project executed successfully"}
@@ -252,7 +279,7 @@ def terminar_proyecto(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
-
+    user = user_service.obtener_usuario_por_username(db, username)
     try:
         proyecto = proyecto_service.terminar_proyecto(db, data.project_id)
         if not proyecto:
@@ -261,37 +288,41 @@ def terminar_proyecto(
         #     raise HTTPException(status_code=400, detail="Proyecto inválido")
         # if observacion_service.has_unresolved_observations(proyecto.id, db):
         #     raise HTTPException(status_code=400, detail="Proyecto inválido")
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
 
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
         if not activities:
-            raise HTTPException(status_code=409, detail="No hay actividades disponibles en Bonita")
+            raise HTTPException(
+                status_code=409, detail="No hay actividades disponibles en Bonita"
+            )
 
         task1 = activities[0]["id"]
 
         try:
-            bonita.assign_task(task_id=task1, user_id=1)
+            bonita.assign_task(task_id=task1, user_id=user.id)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error asignando tarea Bonita: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Error asignando tarea Bonita: {e}"
+            )
 
         try:
             bonita.complete_activity(task_id=task1)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error completando actividad Bonita: {e}")
- 
+            raise HTTPException(
+                status_code=500, detail=f"Error completando actividad Bonita: {e}"
+            )
 
         buffer = BytesIO()
         pdf = canvas.Canvas(buffer)
 
         pdf.setFont("Helvetica-Bold", 16)
-        pdf.drawString(100, 800, f"Reporte del Proyecto #{proyecto.id}")
+        pdf.drawString(100, 800, f"Reporte del Proyecto {proyecto.titulo}")
 
         pdf.setFont("Helvetica", 12)
-        pdf.drawString(100, 770, f"Título: {proyecto.titulo}")
-        pdf.drawString(100, 750, f"Descripción: {proyecto.descripcion}")
-        pdf.drawString(100, 730, f"Fecha de creación: {proyecto.fecha_creacion}")
-        pdf.drawString(100, 710, f"Estado final: Terminado")
-        y = 710 - 30
+        pdf.drawString(100, 770, f"Descripción: {proyecto.descripcion}")
+        pdf.drawString(100, 750, f"Fecha de creación: {proyecto.fecha_creacion}")
+        pdf.drawString(100, 730, f"Estado final: Terminado")
+        y = 730 - 20
 
         # Etapas
         pdf.setFont("Helvetica-Bold", 14)
@@ -303,7 +334,7 @@ def terminar_proyecto(
         y -= 20
 
         url = (
-            "https://projectplanning-cloud.onrender.com/etapas/proyecto/"
+            "https://projectplanning-cloud-yxzf.onrender.com/etapas/proyecto/"
             + str(proyecto.id)
             + "/todas"
         )
@@ -320,10 +351,27 @@ def terminar_proyecto(
             raise HTTPException(
                 status_code=503, detail=f"Error consiguiendo las etapas del cloud: {e}"
             )
-        for etapa in etapas:
-            pdf.drawString(120, y, f"- {etapa['titulo']}: {etapa['descripcion']}")
+        for index, etapa in enumerate(etapas):
+            pdf.drawString(
+                120, y, f"- Etapa {index+1}: {etapa['titulo']}: {etapa['descripcion']}"
+            )
+            y-=20
+            pdf.drawString(
+                120, y, f"Descripción: {etapa['descripcion']}"
+            )
             y -= 20
-            pdf.drawString(120, y, f"Fecha de inicio: - {etapa['fecha_inicio']} - Fecha de fin: {etapa['fecha_fin']}")
+            pdf.drawString(
+                120,
+                y,
+                f"Fecha de inicio: {etapa['fecha_inicio']}",
+            )
+            y -= 20
+            pdf.drawString(
+                120,
+                y,
+                f"Fecha de fin: {etapa['fecha_fin']}",
+            )
+            y-=20
             if y < 50:
                 pdf.showPage()
                 y = 800
@@ -341,14 +389,31 @@ def terminar_proyecto(
 
         pdf.setFont("Helvetica", 12)
 
-        observaciones = observacion_service.get_all_observations(proyecto.id, db)
+        observaciones = observacion_service.get_observaciones_por_proyecto(proyecto.id, db)
 
         if not observaciones:
             pdf.drawString(120, y, "No hay observaciones registradas.")
             y -= 20
         else:
             for obs in observaciones:
-                pdf.drawString(120, y, f"- {obs.descripcion} ({obs.resuelto})")
+                esta_resuelta = bool(obs["resuelto"])
+                
+                if esta_resuelta:
+                    estado_texto = "Resuelta"
+                    color_texto = colors.green  
+                else:
+                    estado_texto = "Sin resolver"
+                    color_texto = colors.red    
+                pdf.setFillColor(color_texto)
+                
+                pdf.drawString(
+                    120,
+                    y,
+                    f"{obs['nombre_observante']} observó: {obs['descripcion']} -> {estado_texto}",
+                )
+                
+                pdf.setFillColor(colors.black) 
+                
                 y -= 20
 
                 if y < 50:

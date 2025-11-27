@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import ProjectInfo from "./projectInfo";
 import LinkButton from "../buttons/linkButton";
@@ -8,10 +8,51 @@ const AllProjects = () => {
     const [projects, setProjects] = useState([]);
     const token = localStorage.getItem("token");
     const id = localStorage.getItem("id");
+    const caseId = localStorage.getItem("caseId");
+    const initialized = useRef(false);
 
     useEffect(() => {
-        hasPermissions();
+        if (!initialized.current) {
+            initialized.current = true;
+            hasPermissions();
+        }
+    }, []);
 
+    useEffect(() => {
+        localStorage.setItem("observationMade", "false");
+    }, []);
+
+
+    useEffect(() => {
+        const closeCase = () => {
+            const caseId = localStorage.getItem("caseId");
+            const observationMade = localStorage.getItem("observationMade") === "true";
+
+            if (!caseId || !token) {
+                return;
+            }
+
+            if (observationMade) {
+                return;
+            }
+
+            fetch("http://localhost:8001/observaciones/close_case", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ case_id: Number(caseId) }),
+                keepalive: true
+            }).catch(() => { });
+        };
+
+        window.addEventListener("beforeunload", closeCase);
+
+        return () => {
+            closeCase();
+            window.removeEventListener("beforeunload", closeCase);
+        };
     }, []);
 
     const hasPermissions = async () => {
@@ -103,6 +144,14 @@ const AllProjects = () => {
                     </div>
                     <LinkButton href={"/"} text={"Volver"} classAttr={"mt-2 ml-2 w-20"} />
                     <h1 className="text-2xl font-bold text-gray-800 m-2"> Proyectos:</h1>
+                    {projects.length == 0 && (
+                        <div className="col-span-1 sm:col-span-2 lg:col-span-3 flex flex-col justify-center items-center w-full">
+                            <p className="text-gray-500 flex justify-center items-center mt-10">
+                                No hay proyectos activos en este momento.
+                            </p>
+                            <LinkButton href={"/"} text={"Volver"} classAttr={"mt-4"} />
+                        </div>
+                    )}
                     {projects.map((project) => (
                         <ProjectInfo project={project} key={project.id} />
                     ))}

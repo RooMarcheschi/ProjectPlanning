@@ -27,7 +27,7 @@ def get_all_etapas(token: str = Depends(oauth2_scheme), db: Session = Depends(ge
     proyectos_id = proyecto_service.obtener_projectos_id_para_ong(db=db, u_id=user.id)
     print(proyectos_id)
     # Post para conseguir las etapas del cloud
-    url = "https://projectplanning-cloud.onrender.com/etapas/excluir-por-proyectos"  # reemplaza con la URL destino
+    url = "https://projectplanning-cloud-yxzf.onrender.com/etapas/excluir-por-proyectos"  # reemplaza con la URL destino
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     try:
         resp = requests.post(url, json=proyectos_id, headers=headers, timeout=10)
@@ -49,7 +49,7 @@ def get_etapas_from_project(project_id: int, db: Session = Depends(get_db), toke
         raise HTTPException(status_code=404, detail="Project non existent")
     
     # Post para conseguir las etapas del cloud
-    url = "https://projectplanning-cloud.onrender.com/etapas/proyecto/" + str(project_id) + "/todas"  # reemplaza con la URL destino
+    url = "https://projectplanning-cloud-yxzf.onrender.com/etapas/proyecto/" + str(project_id) + "/todas"  # reemplaza con la URL destino
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     try:
         resp = requests.get(url, headers=headers, timeout=10)

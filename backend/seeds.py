@@ -10,6 +10,15 @@ from core.security import get_password_hash as hash_password
 
 def seed_data(db: Session):
     user = User(
+        username="william.jobs",
+        password=hash_password("123456"),
+        email="william.jobs@example.com",
+        puede_observar=True,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    user = User(
         username="walter.bates",
         password=hash_password("123456"),
         email="walter.bates@example.com",
@@ -19,13 +28,21 @@ def seed_data(db: Session):
     db.commit()
     db.refresh(user)
     lalo = User(
-        username="lalo",
+        username="jan.fisher",
         password=hash_password("123456"),
-        email="lalo@example.com",
+        email="jan.fisher@example.com",
     )
     db.add(lalo)
     db.commit()
     db.refresh(lalo)
+    user = User(
+        username="favio.riviera",
+        password=hash_password("123456"),
+        email="favio.riviera@example.com",
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
 def main():
     Base.metadata.create_all(bind=engine)
 

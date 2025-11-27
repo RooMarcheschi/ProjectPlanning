@@ -1,12 +1,12 @@
 from bonita_client import BonitaClient
 import time
 
-def get_bonita_client():
+def get_bonita_client(username: str = "walter.bates", password: str = "123456"):
     bonita = BonitaClient(
         # http://host.docker.internal:8080 o "http://localhost:8080"
         base_url="http://host.docker.internal:8080",
-        username="walter.bates",
-        password="bpm",
+        username=username,
+        password=password,
     )
     return bonita
 

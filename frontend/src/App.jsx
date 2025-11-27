@@ -14,6 +14,8 @@ import RegisterForm from './components/login/registerForm';
 import { ToastContainer } from "react-toastify";
 import AllProjects from './components/projects/allProjects';
 import MisCompromisos from './components/compromisos/misCompromisos';
+import ConsultasDashboard from './components/consultas/consultasDashboard'; 
+import AllObservations from './components/observaciones/allObservations';
 
 const App = () => {
   return (
@@ -52,6 +54,12 @@ const App = () => {
           } />
           <Route path='/misCompromisos' element={
             <ProtectedRoute children={<MisCompromisos />} />
+          } />
+          <Route path='/consultas' element={
+            <ProtectedRoute children={<ConsultasDashboard />} />
+          } />
+          <Route path='/misObservaciones' element={
+            <ProtectedRoute children={<AllObservations />} />
           } />
         </Routes>
       </Router>
