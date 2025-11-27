@@ -33,7 +33,7 @@ def generar_case(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Invalid token")
 
     try:
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
 
         process_id = bonita.get_process_id_by_name("CargarObservacion")
         print("Process ID obtenido:", process_id)
@@ -60,36 +60,6 @@ def generar_case(token: str = Depends(oauth2_scheme)):
         raise HTTPException(
             status_code=500, detail=f"Error generating case in Bonita: {str(e)}"
         )
-
-
-# @router.get("/")
-# def get_all_observaciones(
-#     db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
-# ):
-#     username = decode_token(token)
-#     return observacion_service.obtener_observaciones(db=db)
-
-
-# @router.post("/cancelar_observacion")
-# def cancelar_observacion(
-#     case_id: int,
-#     db: Session = Depends(get_db),
-#     token: str = Depends(oauth2_scheme),
-# ):
-#     username = decode_token(token)
-#     user = user_service.obtener_usuario_por_username(db=db, user_username=username)
-#     if not user:
-#         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-#     try:
-#         bonita = get_bonita_client()
-#         activities = wait_for_any_activity(bonita, case_id)
-#         task1 = activities[0]["id"]
-#         bonita.assign_task(task_id=task1, user_id=1)
-#         bonita.complete_activity(task_id=task1)
-#         return {"success": True, "message": "Observacion cancelada correctamente"}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail={"message": str(e)})
-
 
 @router.post("/realizar_observacion")
 def realizar_observacion(
@@ -118,7 +88,7 @@ def realizar_observacion(
         )
         # Acá es donde debería avanzar el proceso en Bonita
         try:
-            bonita = get_bonita_client()
+            bonita = get_bonita_client(username=username)
             bonita.set_case_variable(
                 case_id=str(case_id),
                 variable_name="hayObservaciones",
@@ -128,12 +98,12 @@ def realizar_observacion(
             activities = wait_for_any_activity(bonita, case_id)
             task1 = activities[0]["id"]
 
-            bonita.assign_task(task_id=task1, user_id=1)
+            bonita.assign_task(task_id=task1, user_id=user.id)
             bonita.complete_activity(task_id=task1)
             last_id = task1
             for i in range(1):
                 act = wait_for_ready_activity(bonita, case_id, previous_id=last_id)
-                bonita.assign_task(task_id=act["id"], user_id=2)
+                bonita.assign_task(task_id=act["id"], user_id=user.id)
                 bonita.complete_activity(task_id=act["id"])
                 last_id = act["id"]
 
@@ -193,14 +163,17 @@ def patch_resolve_observation(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail={"message": "Invalid token"})
+    user = user_service.obtener_usuario_por_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
     try:
         observacion_service.resolve_observation(observation_id, db)
         # Avanzar en el proceso de Bonita
         observacion = observacion_service.get_observacion_by_id(observation_id, db)
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
         activities = wait_for_any_activity(bonita, observacion.case_id)
         task1 = activities[0]["id"]
-        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.assign_task(task_id=task1, user_id=user.id)
         bonita.complete_activity(task_id=task1)
         return {"success": True, "message": "Observation resolved"}
     except Exception as e:
@@ -215,7 +188,9 @@ def close_case(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail={"message": "Invalid token"})
-
+    user = user_service.obtener_usuario_por_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
     try:
         obs = observacion_service.get_observation_by_caseid(case_id, db)
         if obs:
@@ -223,7 +198,7 @@ def close_case(
                 status_code=400,
                 detail={"message": "No se puede cerrar el case, hay observaciones pendientes"},
             )
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
 
         hayObservaciones = bonita.get_variable_by_case(
             case_id=case_id, variable_name="hayObservaciones"
@@ -239,7 +214,7 @@ def close_case(
 
         activities = wait_for_any_activity(bonita, case_id)
         task1 = activities[0]["id"]
-        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.assign_task(task_id=task1, user_id=user.id)
         bonita.complete_activity(task_id=task1)
 
         return {"success": True, "message": "Case closed successfully"}

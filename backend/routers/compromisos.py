@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer
+from services import user_service
 from core.security import decode_token
 from config.database import get_db
 from dependencies import get_bonita_client
@@ -35,8 +36,11 @@ def asumir_compromiso(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+    user = user_service.obtener_usuario_por_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
     try:
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
         proyecto = proyecto_service.obtener_proyecto_por_id(db, proyecto_id)
         # Conseguir id del case
         case = bonita.get_case_by_id(case_id=proyecto.idBonita)
@@ -61,7 +65,7 @@ def asumir_compromiso(
         while activity[0]["state"] != "ready":
             activity = bonita.search_activity_by_case(case_id=case["id"])
         bonita.assign_task(
-            task_id=task, user_id=1
+            task_id=task, user_id=user.id
         )  # Asignar la tarea al usuario ni siquiera es walter.bates ese como arreglamos?
         res = bonita.complete_activity(task_id=task)
         print(f"RES:{res}")
@@ -83,8 +87,11 @@ def terminar_compromiso(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+    user = user_service.obtener_usuario_por_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
     try:
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
         proyecto = proyecto_service.obtener_proyecto_por_id(db, proyecto_id)
         # Conseguir id del case
         case = bonita.get_case_by_id(case_id=proyecto.idBonita)
@@ -109,7 +116,7 @@ def terminar_compromiso(
         while activity[0]["state"] != "ready":
             activity = bonita.search_activity_by_case(case_id=case["id"])
         bonita.assign_task(
-            task_id=task, user_id=1
+            task_id=task, user_id=user.id
         )  # Asignar la tarea al usuario ni siquiera es walter.bates ese como arreglamos?
         res = bonita.complete_activity(task_id=task)
     except Exception as e:

@@ -10,18 +10,18 @@ from core.security import get_password_hash as hash_password
 
 def seed_data(db: Session):
     user = User(
-        username="walter.bates",
+        username="william.jobs",
         password=hash_password("123456"),
-        email="walter.bates@example.com",
+        email="william.jobs@example.com",
         puede_observar=True,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     user = User(
-        username="william.jobs",
+        username="walter.bates",
         password=hash_password("123456"),
-        email="william.jobs@example.com",
+        email="walter.bates@example.com",
         puede_observar=True,
     )
     db.add(user)

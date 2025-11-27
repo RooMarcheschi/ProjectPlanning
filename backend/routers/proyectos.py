@@ -1,3 +1,4 @@
+from services import user_service
 from config.database import get_db
 from core.security import decode_token
 from datetime import date
@@ -36,6 +37,7 @@ def crear_proyecto(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+    user = user_service.obtener_usuario_por_username(db, username)
     project_name = proyecto["projectName"]
     project_desc = proyecto["projectDesc"]
     amount_stages = proyecto["stagesAmount"]
@@ -94,7 +96,7 @@ def crear_proyecto(
             )
 
     try:
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
         process_id = bonita.get_process_id_by_name("Proyecto")
 
         debug("Process ID:", process_id)
@@ -131,7 +133,7 @@ def crear_proyecto(
         task1 = activities[0]["id"]
         debug("Primera actividad:", activities[0])
 
-        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.assign_task(task_id=task1, user_id=user.id)
         bonita.complete_activity(task_id=task1)
 
         etapas = []
@@ -160,7 +162,7 @@ def crear_proyecto(
             debug(f"\n--- Ciclo actividad {i+1} ---")
             act = wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
 
-            bonita.assign_task(task_id=act["id"], user_id=2)
+            bonita.assign_task(task_id=act["id"], user_id=user.id)
             bonita.complete_activity(task_id=act["id"])
             last_id = act["id"]
 
@@ -244,6 +246,9 @@ def ejecutar_proyecto(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+    user = user_service.obtener_usuario_por_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
     try:
         proyecto = proyecto_service.obtener_proyecto_por_id(db, project_id)
         if not proyecto:
@@ -253,12 +258,12 @@ def ejecutar_proyecto(
             db, project_id, EstadoProyecto.ejecutandose
         )
         # Ejecuar tarea de bonita
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
         task1 = activities[0]["id"]
         debug("Primera actividad:", activities[0])
 
-        bonita.assign_task(task_id=task1, user_id=1)
+        bonita.assign_task(task_id=task1, user_id=user.id)
         bonita.complete_activity(task_id=task1)
 
         return {"success": True, "message": "Project executed successfully"}
@@ -273,7 +278,7 @@ def terminar_proyecto(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
-
+    user = user_service.obtener_usuario_por_username(db, username)
     try:
         proyecto = proyecto_service.terminar_proyecto(db, data.project_id)
         if not proyecto:
@@ -282,7 +287,7 @@ def terminar_proyecto(
         #     raise HTTPException(status_code=400, detail="Proyecto inválido")
         # if observacion_service.has_unresolved_observations(proyecto.id, db):
         #     raise HTTPException(status_code=400, detail="Proyecto inválido")
-        bonita = get_bonita_client()
+        bonita = get_bonita_client(username=username)
 
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
         if not activities:
@@ -293,7 +298,7 @@ def terminar_proyecto(
         task1 = activities[0]["id"]
 
         try:
-            bonita.assign_task(task_id=task1, user_id=1)
+            bonita.assign_task(task_id=task1, user_id=user.id)
         except Exception as e:
             raise HTTPException(
                 status_code=500, detail=f"Error asignando tarea Bonita: {e}"
