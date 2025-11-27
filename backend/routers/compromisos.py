@@ -130,7 +130,7 @@ def get_my_compromisos(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
-    url = "https://projectplanning-cloud.onrender.com/compromisos/usuario/"
+    url = "https://projectplanning-cloud-yxzf.onrender.com/compromisos/usuario/"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     try:
         resp = requests.get(url, headers=headers, timeout=10)

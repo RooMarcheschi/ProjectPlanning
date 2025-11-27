@@ -1,5 +1,6 @@
 import CompromisosIcon from "../../assets/compromisosIcon";
 import CrearProyectoIcon from "../../assets/crearProyectoIcon";
+import ObservationsIcon from "../../assets/observationsIcon";
 import PencilIcon from "../../assets/pencilIcon";
 import ProyectosIcon from "../../assets/proyectosIcon";
 import ReportIcon from "../../assets/reportIcon";
@@ -20,6 +21,10 @@ const Rectangle = ({ title, redirect, icon }) => {
 
         if (icon === "commitments") {
             return <CompromisosIcon />
+        }
+
+        if (icon == "observations") {
+            return <ObservationsIcon />
         }
 
         return <ProyectosIcon />

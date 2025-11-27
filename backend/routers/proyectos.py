@@ -185,6 +185,27 @@ def get_projects(
         raise HTTPException(status_code=500, detail={"message": str(e)})
 
 
+@router.get("/tengo_observaciones")
+def tengo_observaciones(
+    id_ong: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
+):
+    username = decode_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    try:
+        all_my_projects = proyecto_service.obtener_proyectos_para_ong(db, id_ong)
+        for project in all_my_projects:
+            has_observations = observacion_service.get_observaciones_por_proyecto(
+                project.id, db
+            )
+            if has_observations:
+                return {"success": True, "has_observations": True}
+
+        return {"success": True, "has_observations": False}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{project_id}")
 def get_project(
     project_id: int, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
@@ -265,33 +286,37 @@ def terminar_proyecto(
 
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
         if not activities:
-            raise HTTPException(status_code=409, detail="No hay actividades disponibles en Bonita")
+            raise HTTPException(
+                status_code=409, detail="No hay actividades disponibles en Bonita"
+            )
 
         task1 = activities[0]["id"]
 
         try:
             bonita.assign_task(task_id=task1, user_id=1)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error asignando tarea Bonita: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Error asignando tarea Bonita: {e}"
+            )
 
         try:
             bonita.complete_activity(task_id=task1)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error completando actividad Bonita: {e}")
- 
+            raise HTTPException(
+                status_code=500, detail=f"Error completando actividad Bonita: {e}"
+            )
 
         buffer = BytesIO()
         pdf = canvas.Canvas(buffer)
 
         pdf.setFont("Helvetica-Bold", 16)
-        pdf.drawString(100, 800, f"Reporte del Proyecto #{proyecto.id}")
+        pdf.drawString(100, 800, f"Reporte del Proyecto {proyecto.titulo}")
 
         pdf.setFont("Helvetica", 12)
-        pdf.drawString(100, 770, f"Título: {proyecto.titulo}")
-        pdf.drawString(100, 750, f"Descripción: {proyecto.descripcion}")
-        pdf.drawString(100, 730, f"Fecha de creación: {proyecto.fecha_creacion}")
-        pdf.drawString(100, 710, f"Estado final: Terminado")
-        y = 710 - 30
+        pdf.drawString(100, 770, f"Descripción: {proyecto.descripcion}")
+        pdf.drawString(100, 750, f"Fecha de creación: {proyecto.fecha_creacion}")
+        pdf.drawString(100, 730, f"Estado final: Terminado")
+        y = 730 - 20
 
         # Etapas
         pdf.setFont("Helvetica-Bold", 14)
@@ -303,7 +328,7 @@ def terminar_proyecto(
         y -= 20
 
         url = (
-            "https://projectplanning-cloud.onrender.com/etapas/proyecto/"
+            "https://projectplanning-cloud-yxzf.onrender.com/etapas/proyecto/"
             + str(proyecto.id)
             + "/todas"
         )
@@ -320,10 +345,27 @@ def terminar_proyecto(
             raise HTTPException(
                 status_code=503, detail=f"Error consiguiendo las etapas del cloud: {e}"
             )
-        for etapa in etapas:
-            pdf.drawString(120, y, f"- {etapa['titulo']}: {etapa['descripcion']}")
+        for index, etapa in enumerate(etapas):
+            pdf.drawString(
+                120, y, f"- Etapa {index+1}: {etapa['titulo']}: {etapa['descripcion']}"
+            )
+            y-=20
+            pdf.drawString(
+                120, y, f"- Descripción: {etapa['descripcion']}"
+            )
             y -= 20
-            pdf.drawString(120, y, f"Fecha de inicio: - {etapa['fecha_inicio']} - Fecha de fin: {etapa['fecha_fin']}")
+            pdf.drawString(
+                120,
+                y,
+                f"Fecha de inicio: {etapa['fecha_inicio']}",
+            )
+            y -= 20
+            pdf.drawString(
+                120,
+                y,
+                f"Fecha de fin: {etapa['fecha_fin']}",
+            )
+            y-=10
             if y < 50:
                 pdf.showPage()
                 y = 800
@@ -341,14 +383,18 @@ def terminar_proyecto(
 
         pdf.setFont("Helvetica", 12)
 
-        observaciones = observacion_service.get_all_observations(proyecto.id, db)
+        observaciones = observacion_service.get_observaciones_por_proyecto(proyecto.id, db)
 
         if not observaciones:
             pdf.drawString(120, y, "No hay observaciones registradas.")
             y -= 20
         else:
             for obs in observaciones:
-                pdf.drawString(120, y, f"- {obs.descripcion} ({obs.resuelto})")
+                pdf.drawString(
+                    120,
+                    y,
+                    f"{obs["nombre_observante"]} observó: {obs["descripcion"]} -> {f"Resuelta" if bool(obs["resuelto"]) else "Sin resolver"}",
+                )
                 y -= 20
 
                 if y < 50:
