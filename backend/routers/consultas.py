@@ -16,14 +16,18 @@ def get_consultas(db: Session = Depends(get_db), token: str = Depends(oauth2_sch
     username = decode_token(token)
     #chequear permisos
     user = user_service.obtener_usuario_por_username(db=db, user_username=username)
+    
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Credenciales invalidas"
+        )
     if user.puede_observar == False:
         raise HTTPException(
             status_code=403,
             detail="No tiene permisos para ver las consultas del sistema"
         )
     
-    #crear caso en bonita, se me ocurre mandar los resultados y la fecha de cuando se realizo la consulta
-
     resultado_consultas = {
         "date": date.today(), #devuelve fecha de cuando se hico la consulta
         "get_project_status_stats": consultas_service.get_project_status_stats(db=db), #devuelve un dicc con % de proyectos x estado --> ver como hago para que si hay 0% se devuelva en 0 el estado
