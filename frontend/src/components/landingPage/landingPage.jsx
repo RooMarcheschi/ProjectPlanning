@@ -59,7 +59,7 @@ const LandingPage = () => {
                     )}
                     <Rectangle title="Mis compromisos" redirect={"/misCompromisos"} icon={"commitments"} />
                     {permissions && (
-                        <Rectangle title="Ver reportes" redirect="/" icon="report" />
+                        <Rectangle title="Ver reportes" redirect="/consultas" icon="report" />
                     )}
                 </div>
             </div>
