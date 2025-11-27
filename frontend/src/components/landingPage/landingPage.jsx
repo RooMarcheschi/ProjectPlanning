@@ -41,7 +41,7 @@ const LandingPage = () => {
 
     return (
         <div className="bg-gray-100 pt-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6 ml-8">Hola, {ongName}</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-6 ml-8">Hola, {ongName}👋</h1>
             <h2 className="text-xl font-bold text-blue-800 mb-6 ml-8"> {message} </h2>
             <div className="flex h-screen">
                 <div className="w-1/3 p-6">

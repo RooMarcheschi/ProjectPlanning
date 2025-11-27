@@ -61,6 +61,7 @@ const ProjectInfo = ({ project }) => {
 
             const data = await response.json();
             if (data.success) {
+                localStorage.setItem("observationMade", "true");
                 toast.success("Observación enviada correctamente!", {
                     position: "bottom-right",
                     autoClose: 2000,

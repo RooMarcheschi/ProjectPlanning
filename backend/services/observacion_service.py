@@ -68,30 +68,6 @@ def has_unresolved_observations(id_proyecto, db):
     )
     return obs is not None
 
-
-def observations_by_user(id_user: int, db: Session):
-    resultados = (
-        db.query(Observacion, Proyecto)
-        .join(Proyecto, Proyecto.id == Observacion.id_proyecto)
-        .filter(Observacion.id_observante == id_user)
-        .all()
-    )
-
-    return [
-        {
-            "id": obs.id,
-            "descripcion": obs.descripcion,
-            "fecha_creacion": obs.fecha_creacion,
-            "id_proyecto": obs.id_proyecto,
-            "nombre_proyecto": proy.titulo,
-            "id_observante": obs.id_observante,
-            "resuelto": obs.resuelto,
-            "fecha_resolucion": obs.fecha_resolucion,
-        }
-        for obs, proy in resultados
-    ]
-
-
 def observations_by_user(id_user: int, db: Session):
     resultados = (
         db.query(Observacion, Proyecto)

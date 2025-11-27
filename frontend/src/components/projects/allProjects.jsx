@@ -8,6 +8,7 @@ const AllProjects = () => {
     const [projects, setProjects] = useState([]);
     const token = localStorage.getItem("token");
     const id = localStorage.getItem("id");
+    const caseId = localStorage.getItem("caseId");
     const initialized = useRef(false);
 
     useEffect(() => {
@@ -16,34 +17,43 @@ const AllProjects = () => {
             hasPermissions();
         }
     }, []);
+
     useEffect(() => {
-    const closeCase = () => { 
-        // IF se realizo una observacion no se ejecuta esto
-        const caseId = localStorage.getItem("caseId");
-        const token = localStorage.getItem("token");
+        localStorage.setItem("observationMade", "false");
+    }, []);
 
-        if (!caseId || !token) return;
 
-        fetch("http://localhost:8001/observaciones/close_case", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                case_id: Number(caseId)
-            }),
-            keepalive: true
-        }).catch(() => { });
-    };
+    useEffect(() => {
+        const closeCase = () => {
+            const caseId = localStorage.getItem("caseId");
+            const observationMade = localStorage.getItem("observationMade") === "true";
 
-    window.addEventListener("beforeunload", closeCase);
+            if (!caseId || !token) {
+                return;
+            }
 
-    return () => {
-        closeCase(); // se va de /allProjects
-        window.removeEventListener("beforeunload", closeCase);
-    };
-}, []);
+            if (observationMade) {
+                return;
+            }
+
+            fetch("http://localhost:8001/observaciones/close_case", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ case_id: Number(caseId) }),
+                keepalive: true
+            }).catch(() => { });
+        };
+
+        window.addEventListener("beforeunload", closeCase);
+
+        return () => {
+            closeCase();
+            window.removeEventListener("beforeunload", closeCase);
+        };
+    }, []);
 
     const hasPermissions = async () => {
         try {
