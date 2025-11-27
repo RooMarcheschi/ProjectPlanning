@@ -13,10 +13,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 router = APIRouter(prefix="/compromisos", tags=["Compromisos"])
 
-# @router.get("/")
-# def get_all_compromisos(name: str, db: Session = Depends(get_db)):
-#     return compromiso_service.obtener_compromisos(db=db)
-
 class CompromisoPayload(BaseModel):
     etapa_id: int
     proyecto_id: int
@@ -38,10 +34,15 @@ def asumir_compromiso(
         raise HTTPException(status_code=401, detail="Invalid token")
     user = user_service.obtener_usuario_por_username(db, username)
     if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        raise HTTPException(status_code=401, detail="invalid token")
     try:
         bonita = get_bonita_client(username=username)
         proyecto = proyecto_service.obtener_proyecto_por_id(db, proyecto_id)
+        if proyecto.estado != "publicado":
+            raise HTTPException(
+                status_code=400,
+                detail="No se puede asumir compromiso en un proyecto no publicado",
+            )
         # Conseguir id del case
         case = bonita.get_case_by_id(case_id=proyecto.idBonita)
         # Setear JWT del user en bonia
@@ -68,7 +69,6 @@ def asumir_compromiso(
             task_id=task, user_id=user.id
         )  # Asignar la tarea al usuario ni siquiera es walter.bates ese como arreglamos?
         res = bonita.complete_activity(task_id=task)
-        print(f"RES:{res}")
     except Exception as e:
         raise HTTPException(
             status_code=500, detail="Error communicating with Bonita: " + str(e)
@@ -89,10 +89,15 @@ def terminar_compromiso(
         raise HTTPException(status_code=401, detail="Invalid token")
     user = user_service.obtener_usuario_por_username(db, username)
     if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        raise HTTPException(status_code=401, detail="invalid token")
     try:
         bonita = get_bonita_client(username=username)
         proyecto = proyecto_service.obtener_proyecto_por_id(db, proyecto_id)
+        if proyecto.estado != "ejecutandose":
+            raise HTTPException(
+                status_code=400,
+                detail="No se puede terminar compromiso en un proyecto no en ejecución",
+            )
         # Conseguir id del case
         case = bonita.get_case_by_id(case_id=proyecto.idBonita)
         # Setear JWT del user en bonia
@@ -137,6 +142,9 @@ def get_my_compromisos(
     username = decode_token(token)
     if not username:
         raise HTTPException(status_code=401, detail="Invalid token")
+    user = user_service.obtener_usuario_por_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
     url = "https://projectplanning-cloud-yxzf.onrender.com/compromisos/usuario/"
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     try:

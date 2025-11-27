@@ -254,6 +254,8 @@ def ejecutar_proyecto(
         proyecto = proyecto_service.obtener_proyecto_por_id(db, project_id)
         if not proyecto:
             raise HTTPException(status_code=404, detail="Project not found")
+        if proyecto.estado != EstadoProyecto.publicado:
+            raise HTTPException(status_code=400, detail="No se puede ejecutar un proyecto no publicado")
         # Cambiar estado de proyecto
         proyecto_service.actualizar_estado_proyecto(
             db, project_id, EstadoProyecto.ejecutandose
@@ -284,10 +286,8 @@ def terminar_proyecto(
         proyecto = proyecto_service.terminar_proyecto(db, data.project_id)
         if not proyecto:
             raise HTTPException(status_code=404, detail="Proyecto no encontrado")
-        # if str(proyecto.estado) != EstadoProyecto.ejecutandose:
-        #     raise HTTPException(status_code=400, detail="Proyecto inválido")
-        # if observacion_service.has_unresolved_observations(proyecto.id, db):
-        #     raise HTTPException(status_code=400, detail="Proyecto inválido")
+        if proyecto.estado != EstadoProyecto.ejecutandose:
+           raise HTTPException(status_code=400, detail="Proyecto inválido")
         bonita = get_bonita_client(username=username)
 
         activities = wait_for_any_activity(bonita, proyecto.idBonita)
