@@ -156,7 +156,7 @@ def crear_proyecto(
         )
 
         last_id = None
-        for i in range(2):
+        for i in range(1):
             debug(f"\n--- Ciclo actividad {i+1} ---")
             act = wait_for_ready_activity(bonita, result["caseId"], previous_id=last_id)
 
