@@ -16,6 +16,7 @@ from models.proyecto import Proyecto, EstadoProyecto
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from services import proyecto_service, observacion_service
+from reportlab.lib import colors 
 from reportlab.pdfgen import canvas
 import requests
 
@@ -198,7 +199,7 @@ def tengo_observaciones(
         all_my_projects = proyecto_service.obtener_proyectos_para_ong(db, id_ong)
         for project in all_my_projects:
             has_observations = observacion_service.get_observaciones_por_proyecto(
-                project.id, db
+                project.id, db, True
             )
             if has_observations:
                 return {"success": True, "has_observations": True}
@@ -356,7 +357,7 @@ def terminar_proyecto(
             )
             y-=20
             pdf.drawString(
-                120, y, f"- Descripción: {etapa['descripcion']}"
+                120, y, f"Descripción: {etapa['descripcion']}"
             )
             y -= 20
             pdf.drawString(
@@ -370,7 +371,7 @@ def terminar_proyecto(
                 y,
                 f"Fecha de fin: {etapa['fecha_fin']}",
             )
-            y-=10
+            y-=20
             if y < 50:
                 pdf.showPage()
                 y = 800
@@ -395,11 +396,24 @@ def terminar_proyecto(
             y -= 20
         else:
             for obs in observaciones:
+                esta_resuelta = bool(obs["resuelto"])
+                
+                if esta_resuelta:
+                    estado_texto = "Resuelta"
+                    color_texto = colors.green  
+                else:
+                    estado_texto = "Sin resolver"
+                    color_texto = colors.red    
+                pdf.setFillColor(color_texto)
+                
                 pdf.drawString(
                     120,
                     y,
-                    f"{obs["nombre_observante"]} observó: {obs["descripcion"]} -> {f"Resuelta" if bool(obs["resuelto"]) else "Sin resolver"}",
+                    f"{obs['nombre_observante']} observó: {obs['descripcion']} -> {estado_texto}",
                 )
+                
+                pdf.setFillColor(colors.black) 
+                
                 y -= 20
 
                 if y < 50:

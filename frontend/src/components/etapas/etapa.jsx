@@ -30,7 +30,7 @@ const Etapa = ({ etapa, onEtapaChange }) => {
                     autoClose: 3000,
                 })
                 if (onEtapaChange) {
-                    onEtapaChange();
+                    setTimeout(() => onEtapaChange(), 150);
                 }
             } else {
                 toast.error(`Error al generar el compromiso: ${data.detail}`, {

@@ -1,6 +1,7 @@
 from models.observacion import Observacion
-from models.proyecto import Proyecto
+from models.proyecto import Proyecto, EstadoProyecto
 from models.user import User
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import Any
 
@@ -28,13 +29,19 @@ def get_observacion_by_id(id: int, db: Session):
     return db.query(Observacion).filter(Observacion.id == id).first()
 
 
-def get_observaciones_por_proyecto(id_proyecto: Any, db: Session):
-    observaciones = (
-        db.query(Observacion)
+def get_observaciones_por_proyecto(id_proyecto: Any, db: Session, solo_resolubles: bool = False):
+    query = (
+        db.query(Observacion, User, Proyecto)
         .join(User, Observacion.id_observante == User.id)
+        .join(Proyecto, Observacion.id_proyecto == Proyecto.id)
         .filter(Observacion.id_proyecto == id_proyecto)
-        .all()
     )
+
+    if solo_resolubles:
+        query = query.filter(Proyecto.estado != EstadoProyecto.terminado)
+        query = query.filter(Observacion.fecha_resolucion >= func.current_date())
+
+    resultados = query.all()
 
     return [
         {
@@ -44,10 +51,10 @@ def get_observaciones_por_proyecto(id_proyecto: Any, db: Session):
             "id_proyecto": obs.id_proyecto,
             "id_observante": obs.id_observante,
             "resuelto": obs.resuelto,
-            "nombre_observante": obs.observante.username,
+            "nombre_observante": user.username,
             "fecha_resolucion": obs.fecha_resolucion,
         }
-        for obs in observaciones
+        for obs, user, proy in resultados
     ]
 
 

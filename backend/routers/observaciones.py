@@ -220,7 +220,7 @@ def close_case(
         return {"success": True, "message": "Case closed successfully"}
 
     except HTTPException:
-        raise   # ✅ respeta tus errores HTTP reales
+        raise
 
     except Exception as e:
         raise HTTPException(
