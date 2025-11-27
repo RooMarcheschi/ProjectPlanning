@@ -71,7 +71,6 @@ const MisCompromisos = () => {
                 </>
             )}
         </div>
-
     )
 }
 

@@ -57,7 +57,7 @@ const Project = () => {
                 setEtapas(data.etapas);
             }
             else {
-                toast.error("Error al conseguir las etapas", {
+                toast.error(`Error al conseguir las etapas: ${data.detail}`, {
                     "position": "bottom-right",
                     "autoClose": 3000
                 });
@@ -261,7 +261,7 @@ const Project = () => {
 
                 {observations && (
                     <ObservationsPanel observations={observations}
-                        onResolve={resolveObservation} />
+                        onResolve={resolveObservation} estado={project?.estado}/>
                 )}
             </div>
         </div>

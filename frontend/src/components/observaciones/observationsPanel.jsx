@@ -1,8 +1,8 @@
 import ObservationBubble from "./observationsBubble";
 
-const ObservationsPanel = ({ observations, onResolve }) => {
+const ObservationsPanel = ({ observations, onResolve, estado }) => {
     return (
-        <div className="w-80 ml-6 p-4 bg-gray-100 rounded-xl shadow-inner h-fit">
+        <div className="w-80 ml-6 p-4 bg-gray-100 rounded-xl shadow-inner h-fit overflow-hidden">
             <h2 className="text-lg font-bold mb-4 text-gray-700">Observaciones</h2>
 
             {observations.length === 0 && (
@@ -18,10 +18,9 @@ const ObservationsPanel = ({ observations, onResolve }) => {
                     </p>
 
                     <ObservationBubble
-                        observacion={obs.descripcion}
-                        fecha={obs.fecha_creacion}
+                        observacion={obs}
                         onResolve={() => onResolve(obs.id)}
-                        id={obs.id}
+                        estado = {estado}
                     />
 
                 </div>
